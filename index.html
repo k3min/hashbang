@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title data-spec="{} — {}">Website</title>
+		<script src="js/hashbang.min.js"></script>
+	</head>
+	<body>
+		<header>
+			<h1><a href="#!/blog">Website</a></h1>
+			<nav>
+				<ul>
+					<li><a href="#!/blog" id="!/blog">Blog</a></li>
+					<li><a href="#!/projects" id="!/projects">Projects</a></li>
+					<li><a href="#!/contact" id="!/contact">Contact</a></li>
+				</ul>
+			</nav>
+		</header>
+		<section data-role="target">
+			<noscript>
+				<!-- JavaScript disabled -->
+			</noscript>
+		</section>
+		<script type="text/x-template" data-type="default">
+			<article>
+				<h1>{title}</h1>
+				{content}
+			</article>
+		</script>
+	</body>
+</html>
