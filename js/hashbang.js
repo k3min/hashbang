@@ -28,7 +28,7 @@
 		this.type = type;
 
 		if (HB.Template.cache[this.type] === undefined) {
-			var selector = "[data-type={}]".format(this.type),
+			var selector = "script[data-type={}]".format(this.type),
 				source = document.querySelector(selector).text;
 
 			HB.Template.cache[this.type] = source.replace(/\s{2,}/g, "");
