@@ -1,5 +1,5 @@
-\#!/CMS
-=======
+Hashbang
+========
 
 It's just really easy
 ---------------------
