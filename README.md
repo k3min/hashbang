@@ -14,4 +14,6 @@ Hashbang is CMS made easy. No need for complex PHP code and no need for thousand
 
 - Dates
 - Paging
+- Editor
+- Comments?
 - ...
