@@ -9,7 +9,7 @@
 		target: null,
 		collections: {},
 		title: {},
-		version: 1.0,
+		version: 1.1,
 		main: function () {
 			this.home = document.getElementsByTagName("a")[0].hash;
 			this.target = document.querySelector("[data-role=target]");
