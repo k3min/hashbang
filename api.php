@@ -1,12 +1,12 @@
 <?php
 	$db = new PDO('mysql:host=localhost;dbname=DATABASE', 'USER', 'PASSWORD');
 
-	$collection = $db -> prepare('SELECT id, title, type, showTitle FROM collections WHERE handle = ?');
-	$blocks = $db -> prepare('SELECT id, handle, title, description, content, type, attributes FROM blocks WHERE collectionId = ?');
+	$collection = $db->prepare('SELECT id, title, type, showTitle FROM collections WHERE handle = ?');
+	$blocks = $db->prepare('SELECT id, handle, title, description, content, type, attributes FROM blocks WHERE collectionId = ?');
 
-	$collection -> execute(array($_GET['handle']));
+	$collection->execute(array($_GET['handle']));
 
-	if ($row = $collection -> fetch()) {
+	if ($row = $collection->fetch()) {
 		$response = array(
 			'id' => 0 + $row['id'],
 			'handle' => $_GET['handle'],
@@ -16,9 +16,9 @@
 			'message' => 'Success'
 		);
 
-		$blocks -> execute(array($row['id']));
+		$blocks->execute(array($row['id']));
 
-		while ($row = $blocks -> fetch()) {
+		while ($row = $blocks->fetch()) {
 			$response['blocks'][$row['handle']] = array(
 				'id' => 0 + $row['id'],
 				'handle' => $row['handle'],

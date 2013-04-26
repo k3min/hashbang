@@ -50,8 +50,8 @@
 	global.HB.Template.cache = {};
 	global.HB.Template.placeholder = document.createElement("div");
 
-	global.HB.Template.replacer = function (undefined, $0) {
-		return $0.split(".").reduce(function (object, property) {
+	global.HB.Template.replacer = function (undefined, $1) {
+		return $1.split(".").reduce(function (object, property) {
 			return object[property];
 		}, this);
 	};
@@ -169,8 +169,8 @@
 	String.prototype.format = function (data) {
 		var i = 0; data = typeof data === "object" ? data : arguments;
 
-		return this.replace(/:(\w+)|\{([0-9])?\}/g, function (undefined, $0, $1) {
-			return data[$0 || $1 || i++];
+		return this.replace(/:(\w+)|\{([0-9])?\}/g, function (undefined, $1, $2) {
+			return data[$1 || $2 || i++];
 		});
 	};
 
