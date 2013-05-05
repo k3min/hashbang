@@ -7,7 +7,17 @@ some HTML and a database to store your content.
 
 *The rest is up to you.*
 
-TODO
+Installation
+------------
+
+1. Create a database
+2. Create database tables using the included **hashbang.sql** file
+2. Edit [line #2](https://github.com/k3min/hashbang/blob/master/api.php#L2) of **api.php**
+3. Upload **index.html**, **js/hashbang.js**, **api.php** and **.htaccess** to your webserver
+4. ?
+5. PROFIT
+
+Todo
 ----
 
 - Dates

@@ -27,14 +27,14 @@
 	global.HB.Template = function (type) {
 		this.type = type;
 
-		if (HB.Template.cache[this.type] === undefined) {
+		if (HB.Template.templates[this.type] === undefined) {
 			var selector = "script[data-type={}]".format(this.type),
 				source = document.querySelector(selector).text;
 
-			HB.Template.cache[this.type] = source.replace(/\s{2,}/g, "");
+			HB.Template.templates[this.type] = source.replace(/\s{2,}/g, "");
 		}
 
-		this.source = HB.Template.cache[this.type];
+		this.source = HB.Template.templates[this.type];
 	};
 
 	global.HB.Template.prototype.render = function (data) {
@@ -47,7 +47,7 @@
 	};
 
 	global.HB.Template.regex = /\{([\w\.]+)\}/g;
-	global.HB.Template.cache = {};
+	global.HB.Template.templates = {};
 	global.HB.Template.placeholder = document.createElement("div");
 
 	global.HB.Template.replacer = function (undefined, $1) {

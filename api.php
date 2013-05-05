@@ -1,5 +1,5 @@
 <?php
-	$db = new PDO('mysql:host=localhost;dbname=DATABASE', 'USER', 'PASSWORD');
+	$db = new PDO('mysql:host=HOST;dbname=DATABASE', 'USER', 'PASSWORD');
 
 	$collection = $db->prepare('SELECT id, title, type, showTitle FROM collections WHERE handle = ?');
 	$blocks = $db->prepare('SELECT id, handle, title, description, content, type, attributes FROM blocks WHERE collectionId = ?');
