@@ -9,7 +9,7 @@
 		target: null,
 		collections: {},
 		title: {},
-		version: 1.1,
+		version: "1.1.1",
 		main: function () {
 			this.home = document.getElementsByTagName("a")[0].hash;
 			this.target = document.querySelector("[data-role=target]");
@@ -167,7 +167,10 @@
 	};
 
 	String.prototype.format = function (data) {
-		var i = 0; data = typeof data === "object" ? data : arguments;
+		var i = 0;
+
+		data = typeof data === "string" ?
+			Array.apply(null, arguments) : data;
 
 		return this.replace(/:(\w+)|\{([0-9])?\}/g, function (undefined, $1, $2) {
 			return data[$1 || $2 || i++];
