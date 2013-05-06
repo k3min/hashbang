@@ -9,7 +9,7 @@
 		target: null,
 		collections: {},
 		title: {},
-		version: "1.1.2",
+		version: "1.1.3",
 		main: function () {
 			this.home = document.getElementsByTagName("a")[0].hash;
 			this.target = document.querySelector("[data-role=target]");
@@ -135,14 +135,16 @@
 			}
 
 			for (var block in this.blocks) {
-				this.blocks[block].show();
+				this.blocks[block].show(this.template);
 			}
 		} else {
 			if (this.blocks[blockHandle] !== undefined) {
-				title = this.blocks[blockHandle].title;
-				type = this.blocks[blockHandle].type;
+				var block = this.blocks[blockHandle];
 
-				this.blocks[blockHandle].show();
+				title = block.title;
+				type = block.type;
+
+				block.show();
 			} else {
 				location.hash = "#!/{}".format(this.handle);
 			}
@@ -162,8 +164,8 @@
 		this.template = new HB.Template(this.type);
 	};
 
-	global.HB.Block.prototype.show = function () {
-		HB.target.appendChild(this.template.render(this));
+	global.HB.Block.prototype.show = function (template) {
+		HB.target.appendChild((template || this.template).render(this));
 	};
 
 	String.prototype.format = function (data) {

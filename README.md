@@ -20,6 +20,7 @@ Installation
 Todo
 ----
 
+- Sorting
 - Dates
 - Paging
 - Search
