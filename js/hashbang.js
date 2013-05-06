@@ -9,7 +9,7 @@
 		target: null,
 		collections: {},
 		title: {},
-		version: "1.1.1",
+		version: "1.1.2",
 		main: function () {
 			this.home = document.getElementsByTagName("a")[0].hash;
 			this.target = document.querySelector("[data-role=target]");
@@ -130,8 +130,8 @@
 
 		if (blockHandle === undefined || blockHandle.length === 0) {
 			if (this.showTitle) {
-				HB.Collection.placeholder.textContent = this.title;
-				HB.target.appendChild(HB.Collection.placeholder);
+				HB.Collection.title.textContent = this.title;
+				HB.target.appendChild(HB.Collection.title);
 			}
 
 			for (var block in this.blocks) {
@@ -149,10 +149,10 @@
 		}
 
 		document.title = HB.title.spec.format(HB.title.text, title);
-		document.body.dataset.type = this.type;
+		document.body.dataset.type = type;
 	};
 
-	global.HB.Collection.placeholder = document.createElement("h1");
+	global.HB.Collection.title = document.createElement("h1");
 
 	global.HB.Block = function (data) {
 		for (var item in data) {
