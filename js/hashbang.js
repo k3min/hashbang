@@ -1,6 +1,11 @@
 (function (global) {
 	"use strict";
 
+	var lastType,
+
+		rstrip = /\s{2,}/g,
+		rformat = /:(\w+)|\{([0-9])?\}/g;
+
 	global.HB = {
 		home: "",
 		api: "api/:handle",
@@ -9,10 +14,11 @@
 		target: null,
 		collections: {},
 		title: {},
-		version: "1.1.3",
-		main: function () {
-			this.home = document.getElementsByTagName("a")[0].hash;
-			this.target = document.querySelector("[data-role=target]");
+		cache: true,
+		version: "1.1.4",
+		main: function (home, target) {
+			this.home = home || document.getElementsByTagName("a")[0].hash;
+			this.target = target || document.querySelector("[data-role=target]");
 
 			this.title = {
 				text: document.title,
@@ -31,7 +37,7 @@
 			var selector = "script[data-type={}]".format(this.type),
 				source = document.querySelector(selector).text;
 
-			HB.Template.templates[this.type] = source.replace(/\s{2,}/g, "");
+			HB.Template.templates[this.type] = source.replace(rstrip, "");
 		}
 
 		this.source = HB.Template.templates[this.type];
@@ -72,7 +78,7 @@
 
 		this.route = this.route.split("/");
 
-		if (HB.collections[this.route[0]] === undefined) {
+		if (HB.collections[this.route[0]] === undefined || !HB.cache) {
 			HB.request.get({ handle: this.route[0] });
 		} else {
 			HB.collections[this.route[0]].show(this.route[1]);
@@ -98,7 +104,7 @@
 			HB.collections[data.handle] = new HB.Collection(data);
 			HB.collections[data.handle].show(HB.router.route[1]);
 		} else {
-			location.hash = HB.home;
+			return location.hash = HB.home;
 		}
 
 		document.body.classList.remove("loading");
@@ -122,22 +128,15 @@
 
 	global.HB.Collection.prototype.show = function (blockHandle) {
 		var title = this.title,
-			type = this.type;
+			type = this.type,
+
+			elements = [document.body, HB.target];
 
 		while (HB.target.firstChild) {
 			HB.target.removeChild(HB.target.firstChild);
 		}
 
-		if (blockHandle === undefined || blockHandle.length === 0) {
-			if (this.showTitle) {
-				HB.Collection.title.textContent = this.title;
-				HB.target.appendChild(HB.Collection.title);
-			}
-
-			for (var block in this.blocks) {
-				this.blocks[block].show(this.template);
-			}
-		} else {
+		if (blockHandle) {
 			if (this.blocks[blockHandle] !== undefined) {
 				var block = this.blocks[blockHandle];
 
@@ -146,12 +145,27 @@
 
 				block.show();
 			} else {
-				location.hash = "#!/{}".format(this.handle);
+				return location.hash = "#!/{}".format(this.handle);
+			}
+		} else {
+			if (this.showTitle) {
+				HB.Collection.title.textContent = this.title;
+				HB.target.appendChild(HB.Collection.title);
+			}
+
+			for (var block in this.blocks) {
+				this.blocks[block].show(this.template);
 			}
 		}
 
 		document.title = HB.title.spec.format(HB.title.text, title);
-		document.body.dataset.type = type;
+
+		elements.forEach(function (element) {
+			element.classList.remove(lastType);
+			element.classList.add(type);
+		});
+
+		lastType = type;
 	};
 
 	global.HB.Collection.title = document.createElement("h1");
@@ -174,10 +188,8 @@
 		data = typeof data === "string" ?
 			Array.apply(null, arguments) : data;
 
-		return this.replace(/:(\w+)|\{([0-9])?\}/g, function (undefined, $1, $2) {
+		return this.replace(rformat, function (undefined, $1, $2) {
 			return data[$1 || $2 || i++];
 		});
 	};
-
-	global.addEventListener("load", HB.main.bind(HB), false);
 })(this);
