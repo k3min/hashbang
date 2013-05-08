@@ -1,6 +1,11 @@
 Hashbang
 ========
 
+It's just really easy
+
+Overview
+--------
+
 Hashbang is *CMS* made easy. No need for complex PHP code and no need
 for thousands of files. It's just one PHP file, one JavaScript file,
 some HTML and a database to store your content.
@@ -19,13 +24,15 @@ Installation
 
 Todo
 ----
-
+- Documentation
+- Use of `history` API
 - Sorting
-- Dates
 - Paging
+- Dates
 - Search
 - Editor
 - Comments?
+- Templates?
 - ...
 
 Examples

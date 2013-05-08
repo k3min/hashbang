@@ -1,21 +1,31 @@
-(function (global) {
+// 	Hashbang 1.2
+
+// 	Copyright (c) 2013 Kevin Pancake
+// 	Hashbang may be freely distributed under the MIT license.
+
+
+(function (root) {
 	"use strict";
 
-	var lastType,
+	// Setup
+	// -----
 
-		rstrip = /\s{2,}/g,
-		rformat = /:(\w+)|\{([0-9])?\}/g;
+	// Top-level namespace.
+	var HB = root.HB = {
 
-	global.HB = {
-		home: "",
-		api: "api/:handle",
-		request: null,
-		router: null,
-		target: null,
+		// Current version.
+		version: "1.2",
+
+		// REST API endpoint.
+		endpoint: "api/:handle",
+
+		// This holds all the requested collections.
 		collections: {},
-		title: {},
-		cache: true,
-		version: "1.1.4",
+
+		// Turn off `useCached` to disable the use of cached collections.
+		useCached: true,
+
+		// Call this to fire up Hashbang.
 		main: function (home, target) {
 			this.home = home || document.getElementsByTagName("a")[0].hash;
 			this.target = target || document.querySelector("[data-role=target]");
@@ -25,51 +35,69 @@
 				spec: document.getElementsByTagName("title")[0].dataset.spec
 			};
 
-			this.request = new HB.Request();
-			this.router = new HB.Router();
+			this.router = new Router();
+			this.router.match();
 		}
 	};
 
-	global.HB.Template = function (type) {
+	// HB.Template
+	// -----------
+
+	// 
+	var Template = HB.Template = function (type) {
 		this.type = type;
 
-		if (HB.Template.templates[this.type] === undefined) {
+		if (Template.templates[this.type] === undefined) {
 			var selector = "script[data-type={}]".format(this.type),
 				source = document.querySelector(selector).text;
 
-			HB.Template.templates[this.type] = source.replace(rstrip, "");
+			Template.templates[this.type] = source.replace(whitespaceStripper, "");
 		}
 
-		this.source = HB.Template.templates[this.type];
+		this.source = Template.templates[this.type];
 	};
 
-	global.HB.Template.prototype.render = function (data) {
-		HB.Template.placeholder.innerHTML = this.source.replace(
-			HB.Template.regex,
-			HB.Template.replacer.bind(data)
+	// 
+	Template.prototype.render = function (data) {
+		Template.placeholder.innerHTML = this.source.replace(
+			Template.regex,
+			Template.replacer.bind(data)
 		);
 
-		return HB.Template.placeholder.childNodes[0];
+		return Template.placeholder.childNodes[0];
 	};
 
-	global.HB.Template.regex = /\{([\w\.]+)\}/g;
-	global.HB.Template.templates = {};
-	global.HB.Template.placeholder = document.createElement("div");
+	// This regex is used to match keys.
+	Template.regex = /\{([\w\.]+)\}/g;
 
-	global.HB.Template.replacer = function (undefined, $1) {
+	// Object to hold stripped templates.
+	Template.templates = {};
+
+	// Placeholder element.
+	Template.placeholder = document.createElement("div");
+
+	// Function that replaces keys with their values.
+	Template.replacer = function (undefined, $1) {
 		return $1.split(".").reduce(function (object, property) {
 			return object[property];
 		}, this);
 	};
 
-	global.HB.Router = function () {
-		this.route = [];
-		this.match();
+	// Cached regex to strip whitespace from a template.
+	var whitespaceStripper = /\s{2,}/g;
 
-		global.addEventListener("hashchange", this.match.bind(this), false);
+	// HB.Router
+	// ---------
+
+	// 
+	var Router = HB.Router = function () {
+		this.route = [];
+
+		addEventListener("hashchange", this.match.bind(this), false);
 	};
 
-	global.HB.Router.prototype.match = function () {
+	// 
+	Router.prototype.match = function () {
 		this.route = location.hash.split("#!/")[1];
 
 		if (this.route === undefined) {
@@ -78,30 +106,38 @@
 
 		this.route = this.route.split("/");
 
-		if (HB.collections[this.route[0]] === undefined || !HB.cache) {
-			HB.request.get({ handle: this.route[0] });
-		} else {
+		if (HB.collections[this.route[0]] !== undefined && HB.useCached) {
 			HB.collections[this.route[0]].show(this.route[1]);
+		} else {
+			HB.request.get({
+				handle: this.route[0]
+			});
 		}
 	};
 
-	global.HB.Request = function () {
+	// HB.Request
+	// ----------
+
+	// 
+	var Request = HB.Request = function () {
 		this.xhr = new XMLHttpRequest();
-		this.xhr.addEventListener("load", HB.Request.callback, false);
+		this.xhr.addEventListener("load", Request.callback, false);
 	};
 
-	global.HB.Request.prototype.get = function (parameters) {
+	// 
+	Request.prototype.get = function (parameters) {
 		document.body.classList.add("loading");
 
-		this.xhr.open("GET", HB.api.format(parameters), true);
+		this.xhr.open("GET", HB.endpoint.format(parameters), true);
 		this.xhr.send(null);
 	};
 
-	global.HB.Request.callback = function () {
+	// 
+	Request.callback = function () {
 		if (this.status === 200) {
 			var data = JSON.parse(this.response);
 
-			HB.collections[data.handle] = new HB.Collection(data);
+			HB.collections[data.handle] = new Collection(data);
 			HB.collections[data.handle].show(HB.router.route[1]);
 		} else {
 			return location.hash = HB.home;
@@ -110,7 +146,14 @@
 		document.body.classList.remove("loading");
 	};
 
-	global.HB.Collection = function (data) {
+	// 
+	HB.request = new Request();
+
+	// HB.Collection
+	// -------------
+
+	// 
+	var Collection = HB.Collection = function (data) {
 		this.blocks = {};
 
 		this.id = data.id;
@@ -119,14 +162,15 @@
 		this.type = data.type;
 		this.showTitle = data.showTitle;
 
-		this.template = new HB.Template(this.type);
+		this.template = new Template(this.type);
 
 		for (var block in data.blocks) {
-			this.blocks[block] = new HB.Block(data.blocks[block]);
+			this.blocks[block] = new Block(data.blocks[block]);
 		}
 	};
 
-	global.HB.Collection.prototype.show = function (blockHandle) {
+	// 
+	Collection.prototype.show = function (blockHandle) {
 		var title = this.title,
 			type = this.type,
 
@@ -149,8 +193,8 @@
 			}
 		} else {
 			if (this.showTitle) {
-				HB.Collection.title.textContent = this.title;
-				HB.target.appendChild(HB.Collection.title);
+				Collection.title.textContent = this.title;
+				HB.target.appendChild(Collection.title);
 			}
 
 			for (var block in this.blocks) {
@@ -168,28 +212,44 @@
 		lastType = type;
 	};
 
-	global.HB.Collection.title = document.createElement("h1");
+	// Element to append to target if `showTitle` is set to `true`.
+	Collection.title = document.createElement("h1");
 
-	global.HB.Block = function (data) {
+	// Variable to hold last used `type`.
+	var lastType;
+
+	// HB.Block
+	// --------
+
+	// 
+	var Block = HB.Block = function (data) {
 		for (var item in data) {
 			this[item] = data[item];
 		}
 
-		this.template = new HB.Template(this.type);
+		this.template = new Template(this.type);
 	};
 
-	global.HB.Block.prototype.show = function (template) {
+	// 
+	Block.prototype.show = function (template) {
 		HB.target.appendChild((template || this.template).render(this));
 	};
 
+	// Helpers
+	// -------
+
+	// Formats a string (`:param` or `{n}` and/or `{}`).
 	String.prototype.format = function (data) {
 		var i = 0;
 
 		data = typeof data === "string" ?
 			Array.apply(null, arguments) : data;
 
-		return this.replace(rformat, function (undefined, $1, $2) {
+		return this.replace(formatMatcher, function (undefined, $1, $2) {
 			return data[$1 || $2 || i++];
 		});
 	};
+
+	// Cached regex to match part of string.
+	var formatMatcher = /:(\w+)|\{([0-9])?\}/g;
 })(this);
