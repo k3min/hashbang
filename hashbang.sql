@@ -14,6 +14,7 @@ CREATE TABLE blocks (
   description varchar(128) NOT NULL,
   content text NOT NULL,
   type varchar(16) NOT NULL DEFAULT 'default',
+  time datetime NOT NULL,
   attributes text NOT NULL,
   collectionId tinyint(1) unsigned DEFAULT NULL,
   PRIMARY KEY (id),

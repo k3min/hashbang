@@ -1,5 +1,7 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase /
+
   RewriteRule ^api/(.*)$ api.php?handle=$1 [L]
 
   RewriteCond %{REQUEST_FILENAME} !-f

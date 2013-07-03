@@ -1,8 +1,6 @@
 Hashbang
 ========
 
-It's just really easy
-
 Overview
 --------
 
@@ -18,7 +16,7 @@ Installation
 1. Create a database
 2. Create database tables using the included **hashbang.sql** file
 2. Edit [line #2](https://github.com/k3min/hashbang/blob/master/api.php#L2) of **api.php**
-3. Upload **index.html**, **js/hashbang.js**, **api.php** and **.htaccess** to your webserver
+3. Upload **index.html**, **js/hashbang.min.js**, **api.php** and **.htaccess** to your webserver
 4. ?
 5. PROFIT
 
@@ -28,11 +26,8 @@ Todo
 - Use of `history` API
 - Sorting
 - Paging
-- Dates
 - Search
 - Editor
-- Comments?
-- Templates?
 - ...
 
 Examples

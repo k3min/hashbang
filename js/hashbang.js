@@ -1,7 +1,7 @@
-// 	Hashbang 1.2
+// Hashbang 1.2.2
 
-// 	Copyright (c) 2013 Kevin Pancake
-// 	Hashbang may be freely distributed under the MIT license.
+// Copyright (c) 2013 Kevin Pancake
+// Hashbang may be freely distributed under the MIT license.
 
 
 (function (root) {
@@ -10,11 +10,14 @@
 	// Setup
 	// -----
 
+	var document = root.document,
+		location = root.location;
+
 	// Top-level namespace.
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.2",
+		version: "1.2.2",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -22,12 +25,12 @@
 		// This holds all the requested collections.
 		collections: {},
 
-		// Turn off `useCached` to disable the use of cached collections.
-		useCached: true,
+		// Turn off `cache` to disable the use of cached collections.
+		cache: true,
 
 		// Call this to fire up Hashbang.
 		main: function (home, target) {
-			this.home = home || document.getElementsByTagName("a")[0].hash;
+			this.home = home || document.querySelector("a").hash;
 			this.target = target || document.querySelector("[data-role=target]");
 
 			this.title = {
@@ -48,8 +51,12 @@
 		this.type = type;
 
 		if (Template.templates[this.type] === undefined) {
-			var selector = "script[data-type={}]".format(this.type),
-				source = document.querySelector(selector).text;
+			try {
+				var selector = "script[data-type={}]".format(this.type),
+					source = document.querySelector(selector).text;
+			} catch (e) {
+				throw new Error("Template '{}' does not exist!".format(this.type));
+			}
 
 			Template.templates[this.type] = source.replace(whitespaceStripper, "");
 		}
@@ -64,7 +71,7 @@
 			Template.replacer.bind(data)
 		);
 
-		return Template.placeholder.childNodes[0];
+		return Array.apply(null, Template.placeholder.childNodes);
 	};
 
 	// This regex is used to match keys.
@@ -92,21 +99,20 @@
 	// 
 	var Router = HB.Router = function () {
 		this.route = [];
-
-		addEventListener("hashchange", this.match.bind(this), false);
+		root.addEventListener("hashchange", this.match.bind(this), false);
 	};
 
 	// 
 	Router.prototype.match = function () {
-		this.route = location.hash.split("#!/")[1];
+		var hash = location.hash.split("#!/")[1];
 
-		if (this.route === undefined) {
+		if (hash === undefined) {
 			return location.hash = HB.home;
 		}
 
-		this.route = this.route.split("/");
+		this.route = hash.split("/");
 
-		if (HB.collections[this.route[0]] !== undefined && HB.useCached) {
+		if (HB.collections[this.route[0]] !== undefined && HB.cache) {
 			HB.collections[this.route[0]].show(this.route[1]);
 		} else {
 			HB.request.get({
@@ -129,6 +135,7 @@
 		document.body.classList.add("loading");
 
 		this.xhr.open("GET", HB.endpoint.format(parameters), true);
+		this.xhr.setRequestHeader("Accept", "application/json");
 		this.xhr.send(null);
 	};
 
@@ -140,7 +147,7 @@
 			HB.collections[data.handle] = new Collection(data);
 			HB.collections[data.handle].show(HB.router.route[1]);
 		} else {
-			return location.hash = HB.home;
+			location.hash = HB.home;
 		}
 
 		document.body.classList.remove("loading");
@@ -159,10 +166,9 @@
 		this.id = data.id;
 		this.handle = data.handle;
 		this.title = data.title;
-		this.type = data.type;
 		this.showTitle = data.showTitle;
 
-		this.template = new Template(this.type);
+		this.template = new Template(data.type);
 
 		for (var block in data.blocks) {
 			this.blocks[block] = new Block(data.blocks[block]);
@@ -171,26 +177,24 @@
 
 	// 
 	Collection.prototype.show = function (blockHandle) {
-		var title = this.title,
-			type = this.type,
+		if (blockHandle !== undefined && this.blocks[blockHandle] === undefined) {
+			return location.hash = "#!/{}".format(this.handle); // TODO: history API.
+		}
 
-			elements = [document.body, HB.target];
+		var title = this.title,
+			type = this.template.type;
 
 		while (HB.target.firstChild) {
 			HB.target.removeChild(HB.target.firstChild);
 		}
 
-		if (blockHandle) {
-			if (this.blocks[blockHandle] !== undefined) {
-				var block = this.blocks[blockHandle];
+		if (blockHandle !== undefined) {
+			var block = this.blocks[blockHandle];
 
-				title = block.title;
-				type = block.type;
+			title = block.title;
+			type = block.template.type;
 
-				block.show();
-			} else {
-				return location.hash = "#!/{}".format(this.handle);
-			}
+			block.show();
 		} else {
 			if (this.showTitle) {
 				Collection.title.textContent = this.title;
@@ -198,16 +202,16 @@
 			}
 
 			for (var block in this.blocks) {
-				this.blocks[block].show(this.template);
+				if (this.blocks.hasOwnProperty(block)) {
+					this.blocks[block].show(this.template);
+				}
 			}
 		}
 
 		document.title = HB.title.spec.format(HB.title.text, title);
 
-		elements.forEach(function (element) {
-			element.classList.remove(lastType);
-			element.classList.add(type);
-		});
+		document.body.classList.remove(lastType);
+		document.body.classList.add(type);
 
 		lastType = type;
 	};
@@ -227,12 +231,14 @@
 			this[item] = data[item];
 		}
 
-		this.template = new Template(this.type);
+		this.template = new Template(data.type);
 	};
 
 	// 
 	Block.prototype.show = function (template) {
-		HB.target.appendChild((template || this.template).render(this));
+		(template || this.template).render(this).forEach(function(element) {
+			HB.target.appendChild(element);
+		});
 	};
 
 	// Helpers
