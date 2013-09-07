@@ -1,4 +1,4 @@
-// Hashbang 1.2.2
+// Hashbang 1.2.4
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.2.2",
+		version: "1.2.4",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -30,7 +30,7 @@
 
 		// Call this to fire up Hashbang.
 		main: function (home, target) {
-			this.home = home || document.querySelector("a").hash;
+			this.home = home || document.getElementsByTagName("a")[0].hash;
 			this.target = target || document.querySelector("[data-role=target]");
 
 			this.title = {
@@ -51,9 +51,10 @@
 		this.type = type;
 
 		if (Template.templates[this.type] === undefined) {
+			var source, selector = "template[data-type={}]".format(this.type);
+
 			try {
-				var selector = "script[data-type={}]".format(this.type),
-					source = document.querySelector(selector).text;
+				source = document.querySelector(selector).innerHTML;
 			} catch (e) {
 				throw new Error("Template '{}' does not exist!".format(this.type));
 			}
@@ -237,6 +238,14 @@
 	// 
 	Block.prototype.show = function (template) {
 		(template || this.template).render(this).forEach(function(element) {
+			var times = element.querySelectorAll("[data-spec]");
+
+			if (times.length) {
+				Array.apply(null, times).forEach(function(time) {
+					time.textContent = (new Date(time.textContent)).format(time.dataset.spec);
+				});
+			}
+
 			HB.target.appendChild(element);
 		});
 	};
@@ -258,4 +267,49 @@
 
 	// Cached regex to match part of string.
 	var formatMatcher = /:(\w+)|\{([0-9])?\}/g;
+
+	// It's kinda like `date` in PHP.
+	Date.prototype.format = function (spec) {
+		var date = this.getDate(),
+			day = this.getDay(),
+			month = this.getMonth(),
+			year = this.getFullYear(),
+			hours = this.getHours(),
+			twelve = hours > 12 ? hours - 12 : hours,
+			minutes = this.getMinutes(),
+			seconds = this.getSeconds(),
+
+			options = {
+				d: date < 10 ? "0" + date : date,
+				D: days[day].substr(0, 3),
+				j: date,
+				l: days[day] + "day",
+				N: day + 1,
+				S: date > 3 && date < 21 ? ordinals[0] : ordinals[date % 10] || ordinals[0],
+				w: day,
+				F: months[month],
+				m: month < 10 ? "0" + month : month,
+				M: months[month].substr(0, 3),
+				n: month + 1,
+				Y: year,
+				y: ("" + year).substr(2, 2),
+				a: hours < 12 ? "am" : "pm",
+				A: hours < 12 ? "AM" : "PM",
+				g: twelve,
+				G: hours,
+				h: twelve < 10 ? "0" + twelve : twelve,
+				H: hours < 10 ? "0" + hours : hours,
+				i: minutes < 10 ? "0" + minutes : minutes,
+				s: seconds < 10 ? "0" + seconds : seconds
+			};
+
+		return spec.replace(/\\?([a-z])/gi, function ($0, $1) {
+			return options[$0] || $1; // Bug or feature?
+		});
+	};
+
+	// Text strings.
+	var ordinals = ["th", "st", "nd", "rd"],
+		days = ["Mon", "Tues", "Wednes", "Thurs", "Fri", "Satur", "Sun"],
+		months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 })(this);
