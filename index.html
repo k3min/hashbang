@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title data-spec="{} — {}">Website</title>
+		<title data-spec="{} &mdash; {}">Website</title>
 		<script src="js/hashbang.min.js"></script>
 	</head>
 	<body>
@@ -22,10 +22,13 @@
 			</noscript>
 		</section>
 		<template data-type="default">
+			<h1>{%= data.title %}</h1>
+			{% data.blocks.forEach(function (data) { %}
 			<article>
-				<h1>{title}</h1>
-				{content}
+				<h1>{%= data.title %}<h1>
+				{%= data.content %}
 			</article>
+			{% }); %}
 		</template>
 		<script>
 			HB.main();

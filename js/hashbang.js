@@ -1,4 +1,4 @@
-// Hashbang 1.2.4
+// Hashbang 1.3.0
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.2.4",
+		version: "1.3.0",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -51,15 +51,15 @@
 		this.type = type;
 
 		if (Template.templates[this.type] === undefined) {
-			var source, selector = "template[data-type={}]".format(this.type);
-
-			try {
+			var selector = "template[data-type={}]".format(this.type),
 				source = document.querySelector(selector).innerHTML;
-			} catch (e) {
-				throw new Error("Template '{}' does not exist!".format(this.type));
-			}
 
-			Template.templates[this.type] = source.replace(whitespaceStripper, "");
+			source = source.replace(whitespaceStripper, "");
+			source = source.replace(printMatcher, "',$1,'");
+			source = source.split("{%").join("');");
+			source = source.split("%}").join("a.push('");
+
+			Template.templates[this.type] = templateFunction.format(source);
 		}
 
 		this.source = Template.templates[this.type];
@@ -67,16 +67,10 @@
 
 	// 
 	Template.prototype.render = function (data) {
-		Template.placeholder.innerHTML = this.source.replace(
-			Template.regex,
-			Template.replacer.bind(data)
-		);
+		Template.placeholder.innerHTML = new Function("data", this.source)(data);
 
 		return Array.apply(null, Template.placeholder.childNodes);
 	};
-
-	// This regex is used to match keys.
-	Template.regex = /\{([\w\.]+)\}/g;
 
 	// Object to hold stripped templates.
 	Template.templates = {};
@@ -84,15 +78,10 @@
 	// Placeholder element.
 	Template.placeholder = document.createElement("div");
 
-	// Function that replaces keys with their values.
-	Template.replacer = function (undefined, $1) {
-		return $1.split(".").reduce(function (object, property) {
-			return object[property];
-		}, this);
-	};
-
-	// Cached regex to strip whitespace from a template.
-	var whitespaceStripper = /\s{2,}/g;
+	// 
+	var whitespaceStripper = /\s{2,}/g,
+		printMatcher = /\{%=(.*?)%\}/g,
+		templateFunction = "var a=[];a.push('{}');return a.join('');";
 
 	// HB.Router
 	// ---------
@@ -107,18 +96,18 @@
 	Router.prototype.match = function () {
 		var hash = location.hash.split("#!/")[1];
 
-		if (hash === undefined) {
-			return location.hash = HB.home;
-		}
+		if (hash) {
+			this.route = hash.split("/");
 
-		this.route = hash.split("/");
-
-		if (HB.collections[this.route[0]] !== undefined && HB.cache) {
-			HB.collections[this.route[0]].show(this.route[1]);
+			if (HB.collections[this.route[0]] !== undefined && HB.cache) {
+				HB.collections[this.route[0]].show(this.route[1]);
+			} else {
+				HB.request.get({
+					handle: this.route[0]
+				});
+			}
 		} else {
-			HB.request.get({
-				handle: this.route[0]
-			});
+			location.hash = HB.home;
 		}
 	};
 
@@ -162,63 +151,50 @@
 
 	// 
 	var Collection = HB.Collection = function (data) {
-		this.blocks = {};
+		for (var item in data) {
+			this[item] = data[item];
+		}
 
-		this.id = data.id;
-		this.handle = data.handle;
-		this.title = data.title;
-		this.showTitle = data.showTitle;
+		this.blocks = data.blocks.map(function (block) {
+			return new Block(block);
+		});
 
 		this.template = new Template(data.type);
-
-		for (var block in data.blocks) {
-			this.blocks[block] = new Block(data.blocks[block]);
-		}
 	};
 
 	// 
 	Collection.prototype.show = function (blockHandle) {
-		if (blockHandle !== undefined && this.blocks[blockHandle] === undefined) {
-			return location.hash = "#!/{}".format(this.handle); // TODO: history API.
-		}
+		var self = HB.collection = this;
 
-		var title = this.title,
-			type = this.template.type;
+		if (blockHandle) {
+			var blocks = this.blocks.filter(function(block) {
+				return block.handle === blockHandle;
+			});
+
+			if (blocks.length) {
+				self = {
+					title: blocks[0].title,
+					template: blocks[0].template,
+					blocks: blocks
+				};
+			} else {
+				return location.hash = "#!/{}".format(this.handle);
+			}
+		}
 
 		while (HB.target.firstChild) {
 			HB.target.removeChild(HB.target.firstChild);
 		}
 
-		if (blockHandle !== undefined) {
-			var block = this.blocks[blockHandle];
-
-			title = block.title;
-			type = block.template.type;
-
-			block.show();
-		} else {
-			if (this.showTitle) {
-				Collection.title.textContent = this.title;
-				HB.target.appendChild(Collection.title);
-			}
-
-			for (var block in this.blocks) {
-				if (this.blocks.hasOwnProperty(block)) {
-					this.blocks[block].show(this.template);
-				}
-			}
-		}
-
-		document.title = HB.title.spec.format(HB.title.text, title);
+		self.template.render(self).forEach(function (element) {
+			HB.target.appendChild(element);
+		});
 
 		document.body.classList.remove(lastType);
-		document.body.classList.add(type);
+		document.body.classList.add(lastType = self.template.type);
 
-		lastType = type;
+		document.title = HB.title.spec.format(HB.title.text, self.title);
 	};
-
-	// Element to append to target if `showTitle` is set to `true`.
-	Collection.title = document.createElement("h1");
 
 	// Variable to hold last used `type`.
 	var lastType;
@@ -232,22 +208,8 @@
 			this[item] = data[item];
 		}
 
+		this.time = new Date(data.time);
 		this.template = new Template(data.type);
-	};
-
-	// 
-	Block.prototype.show = function (template) {
-		(template || this.template).render(this).forEach(function(element) {
-			var times = element.querySelectorAll("[data-spec]");
-
-			if (times.length) {
-				Array.apply(null, times).forEach(function(time) {
-					time.textContent = (new Date(time.textContent)).format(time.dataset.spec);
-				});
-			}
-
-			HB.target.appendChild(element);
-		});
 	};
 
 	// Helpers
@@ -257,8 +219,10 @@
 	String.prototype.format = function (data) {
 		var i = 0;
 
-		data = typeof data === "string" ?
-			Array.apply(null, arguments) : data;
+		if (typeof data !== "object") {
+			// `Array.apply` doesn't work with array's that have a single number.
+			data = [].slice.call(arguments);
+		}
 
 		return this.replace(formatMatcher, function (undefined, $1, $2) {
 			return data[$1 || $2 || i++];
@@ -304,7 +268,7 @@
 			};
 
 		return spec.replace(/\\?([a-z])/gi, function ($0, $1) {
-			return options[$0] || $1; // Bug or feature?
+			return options[$0] !== undefined ? options[$0] : $1;
 		});
 	};
 

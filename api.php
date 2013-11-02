@@ -1,43 +1,67 @@
 <?php
-	$db = new PDO('mysql:host=HOST;dbname=DATABASE', 'USER', 'PASSWORD');
-
-	$collection = $db->prepare('SELECT id, title, type, showTitle FROM collections WHERE handle = ?');
-	$blocks = $db->prepare('SELECT id, handle, title, description, content, type, time, attributes FROM blocks WHERE collectionId = ?');
-
-	$collection->execute([$_GET['handle']]);
-
-	if ($row = $collection->fetch(PDO::FETCH_OBJ)) {
-		$response = [
-			'id' => 0 + $row->id,
-			'handle' => $_GET['handle'],
-			'title' => $row->title,
-			'type' => $row->type,
-			'showTitle' => $row->showTitle === 'true',
-			'message' => 'Success'
-		];
-
-		$blocks->execute([$row->id]);
-
-		while ($row = $blocks->fetch(PDO::FETCH_OBJ)) {
-			$response['blocks'][$row->handle] = [
-				'id' => 0 + $row->id,
-				'handle' => $row->handle,
-				'title' => $row->title,
-				'description' => $row->description,
-				'content' => $row->content,
-				'type' => $row->type,
-				'time' => date('c', strtotime($row->time)),
-				'attributes' => json_decode($row->attributes, true),
-				'url' => sprintf('#!/%s/%s', $_GET['handle'], $row->handle)
-			];
-		}
-	} else {
-		header('HTTP/1.1 404 Not Found');
-		$response['message'] = 'Not Found';
-	}
+	$db = new PDO('mysql:host=HOST;dbname=DATABASE', 'USER', 'PASSWORD', array(
+		PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+	));
 
 	header('Cache-Control: no-cache');
 	header('Content-Type: application/json');
 
+	$collections = $db->prepare('SELECT * FROM collections WHERE handle = ?');
+	$blocks = $db->prepare('SELECT * FROM blocks WHERE collectionId = ?');
+
+	$tags = $db->prepare('
+		SELECT t.handle, t.title
+		FROM blockTags bt
+			JOIN tags t ON t.id = bt.tagId
+		WHERE bt.blockId = ?
+		ORDER BY t.handle
+	');
+
+	$attributes = $db->prepare('
+		SELECT a.handle, a.title
+		FROM blockAttributes ba
+			JOIN attributes a ON a.id = ba.attributeId
+		WHERE ba.blockId = ?
+	');
+
+	$collections->execute(array($_GET['handle']));
+
+	if ($collection = $collections->fetch(PDO::FETCH_OBJ)) {
+		$response = array(
+			'id' => 0 + $collection->id,
+			'handle' => $collection->handle,
+			'title' => $collection->title,
+			'type' => $collection->type,
+			'message' => 'Success'
+		);
+
+		$blocks->execute(array($collection->id));
+
+		while ($block = $blocks->fetch(PDO::FETCH_OBJ)) {
+			$tags->execute(array($block->id));
+			$attributes->execute(array($block->id));
+
+			$response['blocks'][] = array(
+				'id' => 0 + $block->id,
+				'handle' => $block->handle,
+				'title' => $block->title,
+				'description' => $block->description,
+				'content' => $block->content,
+				'type' => $block->type,
+				'time' => date('c', strtotime($block->time)),
+				'tags' => $tags->fetchAll(PDO::FETCH_ASSOC),
+				'attributes' => $attributes->fetchAll(PDO::FETCH_KEY_PAIR),
+				'url' => sprintf('#!/%s/%s', $collection->handle, $block->handle)
+			);
+		}
+	} else {
+		header('HTTP/1.1 404 Not Found');
+
+		$response = array(
+			'message' => 'Not Found'
+		);
+	}
+
 	print json_encode($response);
+?>
 ?>
