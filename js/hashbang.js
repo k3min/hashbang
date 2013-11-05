@@ -1,4 +1,4 @@
-// Hashbang 1.3.0
+// Hashbang 1.3.1
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.3.0",
+		version: "1.3.1",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -54,20 +54,21 @@
 			var selector = "template[data-type={}]".format(this.type),
 				source = document.querySelector(selector).innerHTML;
 
-			source = source.replace(whitespaceStripper, "");
-			source = source.replace(printMatcher, "',$1,'");
+			source = source.replace(whitespaceMatcher, "");
+			source = source.replace(templateMatcher, "',$1,'");
 			source = source.split("{%").join("');");
 			source = source.split("%}").join("a.push('");
+			source = templateFunction.format(source);
 
-			Template.templates[this.type] = templateFunction.format(source);
+			Template.templates[this.type] = new Function("data", source);
 		}
 
-		this.source = Template.templates[this.type];
+		this.method = Template.templates[this.type];
 	};
 
 	// 
 	Template.prototype.render = function (data) {
-		Template.placeholder.innerHTML = new Function("data", this.source)(data);
+		Template.placeholder.innerHTML = this.method(data);
 
 		return Array.apply(null, Template.placeholder.childNodes);
 	};
@@ -79,8 +80,9 @@
 	Template.placeholder = document.createElement("div");
 
 	// 
-	var whitespaceStripper = /\s{2,}/g,
-		printMatcher = /\{%=(.*?)%\}/g,
+	var whitespaceMatcher = /\s{2,}/g,
+		templateMatcher = /\{%=(.*?)%\}/g,
+
 		templateFunction = "var a=[];a.push('{}');return a.join('');";
 
 	// HB.Router
@@ -96,7 +98,7 @@
 	Router.prototype.match = function () {
 		var hash = location.hash.split("#!/")[1];
 
-		if (hash) {
+		if (hash !== undefined) {
 			this.route = hash.split("/");
 
 			if (HB.collections[this.route[0]] !== undefined && HB.cache) {
@@ -151,49 +153,55 @@
 
 	// 
 	var Collection = HB.Collection = function (data) {
-		for (var item in data) {
-			this[item] = data[item];
-		}
-
-		this.blocks = data.blocks.map(function (block) {
-			return new Block(block);
-		});
-
+		this.id = data.id;
+		this.handle = data.handle;
+		this.title = data.title;
+		this.type = data.type;
 		this.template = new Template(data.type);
+
+		this.blocks = data.blocks.map(function (data) {
+			return new Block(data)
+		});
 	};
 
 	// 
 	Collection.prototype.show = function (blockHandle) {
-		var self = HB.collection = this;
+		var data = HB.collection = Object.create(this),
 
-		if (blockHandle) {
-			var blocks = this.blocks.filter(function(block) {
+			title = this.title,
+			template = this.template;
+
+		if (blockHandle !== undefined) {
+			data.blocks = this.blocks.filter(function (block) {
 				return block.handle === blockHandle;
 			});
 
-			if (blocks.length) {
-				self = {
-					title: blocks[0].title,
-					template: blocks[0].template,
-					blocks: blocks
-				};
-			} else {
+			if (data.blocks.length === 0) {
 				return location.hash = "#!/{}".format(this.handle);
 			}
+
+			if (data.blocks.length === 1) {
+				title = data.blocks[0].title;
+				template = data.blocks[0].template;
+			}
+		} else {
+			data.blocks = this.blocks.filter(function (block) {
+				return !block.hidden;
+			});
 		}
 
 		while (HB.target.firstChild) {
 			HB.target.removeChild(HB.target.firstChild);
 		}
 
-		self.template.render(self).forEach(function (element) {
+		template.render(data).forEach(function (element) {
 			HB.target.appendChild(element);
 		});
 
 		document.body.classList.remove(lastType);
-		document.body.classList.add(lastType = self.template.type);
+		document.body.classList.add(lastType = template.type);
 
-		document.title = HB.title.spec.format(HB.title.text, self.title);
+		document.title = HB.title.spec.format(HB.title.text, title);
 	};
 
 	// Variable to hold last used `type`.
@@ -224,13 +232,13 @@
 			data = [].slice.call(arguments);
 		}
 
-		return this.replace(formatMatcher, function (undefined, $1, $2) {
+		return this.replace(stringMatcher, function (undefined, $1, $2) {
 			return data[$1 || $2 || i++];
 		});
 	};
 
 	// Cached regex to match part of string.
-	var formatMatcher = /:(\w+)|\{([0-9])?\}/g;
+	var stringMatcher = /:(\w+)|\{([0-9])?\}/g;
 
 	// It's kinda like `date` in PHP.
 	Date.prototype.format = function (spec) {
@@ -267,13 +275,15 @@
 				s: seconds < 10 ? "0" + seconds : seconds
 			};
 
-		return spec.replace(/\\?([a-z])/gi, function ($0, $1) {
+		return spec.replace(dateMatcher, function ($0, $1) {
 			return options[$0] !== undefined ? options[$0] : $1;
 		});
 	};
 
-	// Text strings.
-	var ordinals = ["th", "st", "nd", "rd"],
+	// 
+	var dateMatcher = /\\?([a-z])/gi,
+
+		ordinals = ["th", "st", "nd", "rd"],
 		days = ["Mon", "Tues", "Wednes", "Thurs", "Fri", "Satur", "Sun"],
 		months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 })(this);

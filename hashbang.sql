@@ -31,6 +31,7 @@ CREATE TABLE blocks (
   content text NOT NULL,
   type varchar(16) NOT NULL DEFAULT 'default',
   time datetime NOT NULL,
+  hidden enum('true', 'false') NOT NULL default 'false',
   collectionId tinyint(1) unsigned DEFAULT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (collectionId) REFERENCES collections(id) ON DELETE SET NULL ON UPDATE CASCADE
