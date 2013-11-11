@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title data-spec="{} &mdash; {}">Website</title>
+		<title data-spec="{1} &mdash; {0}">Website</title>
 		<script src="js/hashbang.min.js"></script>
 	</head>
 	<body>
@@ -16,17 +16,17 @@
 				</ul>
 			</nav>
 		</header>
-		<section data-role="target">
+		<section data-role="root">
 			<noscript>
 				<!-- JavaScript disabled -->
 			</noscript>
 		</section>
-		<template data-type="default">
-			<h1>{%= data.title %}</h1>
-			{% data.blocks.forEach(function (data) { %}
+		<template data-type="default" data-sort="-time">
+			<h1>{%= this.title %}</h1>
+			{% this.blocks.forEach(function (block) { %}
 			<article>
-				<h1>{%= data.title %}<h1>
-				{%= data.content %}
+				<h1>{%= block.title %}<h1>
+				{%= block.content %}
 			</article>
 			{% }); %}
 		</template>

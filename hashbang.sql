@@ -5,22 +5,19 @@ CREATE TABLE attributes (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE blockAttributes (
+CREATE TABLE tags (
   id tinyint(1) unsigned NOT NULL AUTO_INCREMENT,
-  blockId tinyint(1) unsigned NOT NULL,
-  attributeId tinyint(1) unsigned NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (blockId) REFERENCES blocks(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (attributeId) REFERENCES attributes(id) ON DELETE CASCADE ON UPDATE CASCADE
+  handle varchar(32) NOT NULL,
+  title varchar(64) NOT NULL,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE blockTags (
+CREATE TABLE collections (
   id tinyint(1) unsigned NOT NULL AUTO_INCREMENT,
-  blockId tinyint(1) unsigned NOT NULL,
-  tagId tinyint(1) unsigned NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (blockId) REFERENCES blocks(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
+  handle varchar(32) NOT NULL,
+  title varchar(64) NOT NULL,
+  type varchar(16) NOT NULL DEFAULT 'default',
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE blocks (
@@ -37,17 +34,20 @@ CREATE TABLE blocks (
   FOREIGN KEY (collectionId) REFERENCES collections(id) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE tags (
+CREATE TABLE blockAttributes (
   id tinyint(1) unsigned NOT NULL AUTO_INCREMENT,
-  handle varchar(32) NOT NULL,
-  title varchar(64) NOT NULL,
-  PRIMARY KEY (id)
+  blockId tinyint(1) unsigned NOT NULL,
+  attributeId tinyint(1) unsigned NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (blockId) REFERENCES blocks(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (attributeId) REFERENCES attributes(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE collections (
+CREATE TABLE blockTags (
   id tinyint(1) unsigned NOT NULL AUTO_INCREMENT,
-  handle varchar(32) NOT NULL,
-  title varchar(64) NOT NULL,
-  type varchar(16) NOT NULL DEFAULT 'default',
-  PRIMARY KEY (id)
+  blockId tinyint(1) unsigned NOT NULL,
+  tagId tinyint(1) unsigned NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (blockId) REFERENCES blocks(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

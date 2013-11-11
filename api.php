@@ -49,7 +49,7 @@
 				'content' => $block->content,
 				'type' => $block->type,
 				'time' => date('c', strtotime($block->time)),
-				'tags' => $tags->fetchAll(PDO::FETCH_ASSOC),
+				'tags' => $tags->fetchAll(PDO::FETCH_KEY_PAIR),
 				'attributes' => $attributes->fetchAll(PDO::FETCH_KEY_PAIR),
 				'hidden' => $block->hidden === 'true',
 				'url' => sprintf('#!/%s/%s', $collection->handle, $block->handle)

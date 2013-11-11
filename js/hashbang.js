@@ -1,4 +1,4 @@
-// Hashbang 1.3.1
+// Hashbang 1.3.2
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.3.1",
+		version: "1.3.2",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -29,9 +29,9 @@
 		cache: true,
 
 		// Call this to fire up Hashbang.
-		main: function (home, target) {
+		main: function (home, root) {
 			this.home = home || document.getElementsByTagName("a")[0].hash;
-			this.target = target || document.querySelector("[data-role=target]");
+			this.root = root || document.querySelector("[data-role=root]");
 
 			this.title = {
 				text: document.title,
@@ -48,11 +48,11 @@
 
 	// 
 	var Template = HB.Template = function (type) {
-		this.type = type;
+		var selector = "template[data-type={}]".format(type),
+			element = document.querySelector(selector);
 
-		if (Template.templates[this.type] === undefined) {
-			var selector = "template[data-type={}]".format(this.type),
-				source = document.querySelector(selector).innerHTML;
+		if (Template.functions[type] === undefined) {
+			var source = element.innerHTML;
 
 			source = source.replace(whitespaceMatcher, "");
 			source = source.replace(templateMatcher, "',$1,'");
@@ -60,30 +60,31 @@
 			source = source.split("%}").join("a.push('");
 			source = templateFunction.format(source);
 
-			Template.templates[this.type] = new Function("data", source);
+			Template.functions[type] = new Function(source);
 		}
 
-		this.method = Template.templates[this.type];
+		this.type = type;
+		this.element = element;
 	};
 
 	// 
 	Template.prototype.render = function (data) {
-		Template.placeholder.innerHTML = this.method(data);
-
+		Template.placeholder.innerHTML = Template.functions[this.type].call(data);
 		return Array.apply(null, Template.placeholder.childNodes);
 	};
 
-	// Object to hold stripped templates.
-	Template.templates = {};
+	// Object to cache template functions.
+	Template.functions = {};
 
 	// Placeholder element.
 	Template.placeholder = document.createElement("div");
 
-	// 
+	// Cached regexes to match part of string.
 	var whitespaceMatcher = /\s{2,}/g,
-		templateMatcher = /\{%=(.*?)%\}/g,
+		templateMatcher = /\{%=(.*?)%\}/g;
 
-		templateFunction = "var a=[];a.push('{}');return a.join('');";
+	// Function to construct templates.
+	var templateFunction = "var a=[];a.push('{}');return a.join('');";
 
 	// HB.Router
 	// ---------
@@ -153,6 +154,8 @@
 
 	// 
 	var Collection = HB.Collection = function (data) {
+		var sortBy;
+
 		this.id = data.id;
 		this.handle = data.handle;
 		this.title = data.title;
@@ -160,42 +163,59 @@
 		this.template = new Template(data.type);
 
 		this.blocks = data.blocks.map(function (data) {
-			return new Block(data)
+			return new Block(data);
 		});
+
+		Object.defineProperty(this, "sortBy", {
+			enumerable: true,
+			get: function () { return sortBy; },
+			set: function (by) {
+				sortBy = by;
+
+				if (by !== "id") {
+					var order = 1;
+
+					if (by[0] === "-") {
+						by = by.substring(1);
+						order = -1;
+					}
+
+					this.blocks.sort(function (a, b) {
+						a = a.reduce(by);
+						b = b.reduce(by);
+
+						return (a < b ? -1 : a > b ? 1 : 0) * order;
+					});
+				}
+			}
+		});
+
+		this.sortBy = this.template.element.dataset.sort || "id";
 	};
 
 	// 
 	Collection.prototype.show = function (blockHandle) {
-		var data = HB.collection = Object.create(this),
-
+		var data = HB.collection = blockHandle ? Object.create(this) : this,
 			title = this.title,
 			template = this.template;
 
-		if (blockHandle !== undefined) {
-			data.blocks = this.blocks.filter(function (block) {
-				return block.handle === blockHandle;
-			});
+		while (HB.root.firstChild) {
+			HB.root.removeChild(HB.root.firstChild);
+		}
+
+		if (blockHandle) {
+			data.blocks = this.search("handle", blockHandle);
 
 			if (data.blocks.length === 0) {
 				return location.hash = "#!/{}".format(this.handle);
 			}
 
-			if (data.blocks.length === 1) {
-				title = data.blocks[0].title;
-				template = data.blocks[0].template;
-			}
-		} else {
-			data.blocks = this.blocks.filter(function (block) {
-				return !block.hidden;
-			});
-		}
-
-		while (HB.target.firstChild) {
-			HB.target.removeChild(HB.target.firstChild);
+			title = data.blocks[0].title;
+			template = data.blocks[0].template;
 		}
 
 		template.render(data).forEach(function (element) {
-			HB.target.appendChild(element);
+			HB.root.appendChild(element);
 		});
 
 		document.body.classList.remove(lastType);
@@ -204,7 +224,14 @@
 		document.title = HB.title.spec.format(HB.title.text, title);
 	};
 
-	// Variable to hold last used `type`.
+	// 
+	Collection.prototype.search = function (key, value) {
+		return this.blocks.filter(function (block) {
+			return block.reduce(key) === value;
+		});
+	};
+
+	// Variable to hold last used `template.type`.
 	var lastType;
 
 	// HB.Block
@@ -220,6 +247,20 @@
 		this.template = new Template(data.type);
 	};
 
+	// 
+	Block.prototype.reduce = function (to) {
+		var find = to.split("."),
+			result = this[find[0]];
+
+		if (find[1] !== undefined) {
+			for (var i = 1; i < find.length; i++) {
+				result = result[find[i]];
+			}
+		}
+
+		return result;
+	};
+
 	// Helpers
 	// -------
 
@@ -228,7 +269,7 @@
 		var i = 0;
 
 		if (typeof data !== "object") {
-			// `Array.apply` doesn't work with array's that have a single number.
+			// `Array.apply` doesn't work.
 			data = [].slice.call(arguments);
 		}
 
@@ -253,16 +294,17 @@
 
 			options = {
 				d: date < 10 ? "0" + date : date,
-				D: days[day].substr(0, 3),
+				D: Date.days[day].substr(0, 3),
 				j: date,
-				l: days[day] + "day",
+				l: Date.days[day],
 				N: day + 1,
-				S: date > 3 && date < 21 ? ordinals[0] : ordinals[date % 10] || ordinals[0],
+				S: date > 3 && date <= 20 ? Date.ordinals[0] : Date.ordinals[date % 10] || Date.ordinals[0],
 				w: day,
-				F: months[month],
-				m: month < 10 ? "0" + month : month,
-				M: months[month].substr(0, 3),
+				F: Date.months[month],
+				m: month < 10 ? "0" + (month + 1) : (month + 1),
+				M: Date.months[month].substr(0, 3),
 				n: month + 1,
+				t: new Date(year, month + 1, 0).getDate(),
 				Y: year,
 				y: ("" + year).substr(2, 2),
 				a: hours < 12 ? "am" : "pm",
@@ -280,10 +322,30 @@
 		});
 	};
 
-	// 
-	var dateMatcher = /\\?([a-z])/gi,
+	// Text strings.
+	Date.ordinals = ["th", "st", "nd", "rd"];
+	Date.days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+	Date.months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-		ordinals = ["th", "st", "nd", "rd"],
-		days = ["Mon", "Tues", "Wednes", "Thurs", "Fri", "Satur", "Sun"],
-		months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+	// Cached regex to match part of string.
+	var dateMatcher = /\\?([a-z])/gi;
+
+	// HTML5 `dataset` polyfill for IE10.
+	if (Template.placeholder.dataset === undefined) {
+		Object.defineProperty(Element.prototype, "dataset", {
+			get: function () {
+				var dataset = {};
+
+				Array.apply(null, this.attributes).forEach(function (attribute) {
+					var name = attribute.name.split("-");
+
+					if (name[1] !== undefined && name[0] === "data") {
+						dataset[name[1]] = attribute.value;
+					}
+				});
+
+				return dataset;
+			}
+		});
+	}
 })(this);

@@ -24,9 +24,7 @@ Todo
 ----
 - Documentation
 - Use of `history` API
-- Sorting
 - Paging
-- Search
 - Editor
 - ...
 
