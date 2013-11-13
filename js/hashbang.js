@@ -1,4 +1,4 @@
-// Hashbang 1.3.2
+// Hashbang 1.3.3
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.3.2",
+		version: "1.3.3",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -170,32 +170,34 @@
 			enumerable: true,
 			get: function () { return sortBy; },
 			set: function (by) {
+				var order = 1;
+
 				sortBy = by;
 
-				if (by !== "id") {
-					var order = 1;
-
-					if (by[0] === "-") {
-						by = by.substring(1);
-						order = -1;
-					}
-
-					this.blocks.sort(function (a, b) {
-						a = a.reduce(by);
-						b = b.reduce(by);
-
-						return (a < b ? -1 : a > b ? 1 : 0) * order;
-					});
+				if (by[0] === "-") {
+					by = by.substring(1);
+					order = -1;
 				}
+
+				this.blocks.sort(function (a, b) {
+					a = a.reduce(by);
+					b = b.reduce(by);
+
+					return (a < b ? -1 : a > b ? 1 : 0) * order;
+				});
 			}
 		});
 
 		this.sortBy = this.template.element.dataset.sort || "id";
 	};
 
+	Collection.prototype.clone = function () {
+		return Object.create(this);
+	}
+
 	// 
 	Collection.prototype.show = function (blockHandle) {
-		var data = HB.collection = blockHandle ? Object.create(this) : this,
+		var data = HB.collection = blockHandle ? this.clone() : this,
 			title = this.title,
 			template = this.template;
 
@@ -227,7 +229,7 @@
 	// 
 	Collection.prototype.search = function (key, value) {
 		return this.blocks.filter(function (block) {
-			return block.reduce(key) === value;
+			return value.indexOf(block.reduce(key)) !== -1;
 		});
 	};
 
