@@ -27,9 +27,3 @@ Todo
 - Paging
 - Editor
 - ...
-
-Examples
---------
-
-- [Portfolio](http://k3min.eu/)
-- ...

@@ -1,4 +1,4 @@
-// Hashbang 1.3.3
+// Hashbang 1.3.4
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.3.3",
+		version: "1.3.4",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -69,15 +69,15 @@
 
 	// 
 	Template.prototype.render = function (data) {
-		Template.placeholder.innerHTML = Template.functions[this.type].call(data);
-		return Array.apply(null, Template.placeholder.childNodes);
+		Template.temp.innerHTML = Template.functions[this.type].call(data);
+		return Array.apply(null, Template.temp.childNodes);
 	};
 
 	// Object to cache template functions.
 	Template.functions = {};
 
 	// Placeholder element.
-	Template.placeholder = document.createElement("div");
+	Template.temp = document.createElement("div");
 
 	// Cached regexes to match part of string.
 	var whitespaceMatcher = /\s{2,}/g,
@@ -154,8 +154,6 @@
 
 	// 
 	var Collection = HB.Collection = function (data) {
-		var sortBy;
-
 		this.id = data.id;
 		this.handle = data.handle;
 		this.title = data.title;
@@ -166,54 +164,33 @@
 			return new Block(data);
 		});
 
-		Object.defineProperty(this, "sortBy", {
-			enumerable: true,
-			get: function () { return sortBy; },
-			set: function (by) {
-				var order = 1;
-
-				sortBy = by;
-
-				if (by[0] === "-") {
-					by = by.substring(1);
-					order = -1;
-				}
-
-				this.blocks.sort(function (a, b) {
-					a = a.reduce(by);
-					b = b.reduce(by);
-
-					return (a < b ? -1 : a > b ? 1 : 0) * order;
-				});
-			}
-		});
-
-		this.sortBy = this.template.element.dataset.sort || "id";
+		this.sort(this.template.element.dataset.sort || "id");
 	};
 
+	// Returns a clone of the `Collection`.
 	Collection.prototype.clone = function () {
 		return Object.create(this);
-	}
+	};
 
-	// 
+	// Shows the `Collection`, or `Block` if `blockHandle` is specified.
 	Collection.prototype.show = function (blockHandle) {
-		var data = HB.collection = blockHandle ? this.clone() : this,
+		var data = HB.collection = blockHandle ?
+				this.search("handle", blockHandle) : this,
+
 			title = this.title,
 			template = this.template;
 
-		while (HB.root.firstChild) {
-			HB.root.removeChild(HB.root.firstChild);
-		}
-
 		if (blockHandle) {
-			data.blocks = this.search("handle", blockHandle);
-
 			if (data.blocks.length === 0) {
 				return location.hash = "#!/{}".format(this.handle);
 			}
 
 			title = data.blocks[0].title;
 			template = data.blocks[0].template;
+		}
+
+		while (HB.root.firstChild) {
+			HB.root.removeChild(HB.root.firstChild);
 		}
 
 		template.render(data).forEach(function (element) {
@@ -226,11 +203,35 @@
 		document.title = HB.title.spec.format(HB.title.text, title);
 	};
 
-	// 
+	// This returns a clone of the `Collection` with found `blocks`.
 	Collection.prototype.search = function (key, value) {
-		return this.blocks.filter(function (block) {
-			return value.indexOf(block.reduce(key)) !== -1;
+		var data = this.clone();
+
+		data.blocks = data.blocks.filter(function (block) {
+			return block.reduce(key) === value;
 		});
+
+		return data;
+	};
+
+	// Sorts the `blocks` and returns a clone of the `Collection`.
+	Collection.prototype.sort = function (by) {
+		var data = this.clone(),
+			order = 1;
+
+		if (by[0] === "-") {
+			by = by.substring(1);
+			order = -1;
+		}
+
+		data.blocks.sort(function (a, b) {
+			a = a.reduce(by);
+			b = b.reduce(by);
+
+			return (a < b ? -1 : a > b ? 1 : 0) * order;
+		});
+
+		return data;
 	};
 
 	// Variable to hold last used `template.type`.
@@ -249,7 +250,7 @@
 		this.template = new Template(data.type);
 	};
 
-	// 
+	// Returns the value of a property.
 	Block.prototype.reduce = function (to) {
 		var find = to.split("."),
 			result = this[find[0]];
@@ -271,7 +272,7 @@
 		var i = 0;
 
 		if (typeof data !== "object") {
-			// `Array.apply` doesn't work.
+			// `Array.apply` doesn't work with single number arrays.
 			data = [].slice.call(arguments);
 		}
 
@@ -285,7 +286,9 @@
 
 	// It's kinda like `date` in PHP.
 	Date.prototype.format = function (spec) {
-		var date = this.getDate(),
+		var ord = Date.ordinals,
+
+			date = this.getDate(),
 			day = this.getDay(),
 			month = this.getMonth(),
 			year = this.getFullYear(),
@@ -300,7 +303,7 @@
 				j: date,
 				l: Date.days[day],
 				N: day + 1,
-				S: date > 3 && date <= 20 ? Date.ordinals[0] : Date.ordinals[date % 10] || Date.ordinals[0],
+				S: date > 3 && date <= 20 ? ord[0] : (ord[date % 10] || ord[0]),
 				w: day,
 				F: Date.months[month],
 				m: month < 10 ? "0" + (month + 1) : (month + 1),
@@ -326,19 +329,43 @@
 
 	// Text strings.
 	Date.ordinals = ["th", "st", "nd", "rd"];
-	Date.days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-	Date.months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+	Date.days = [
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+		"Sunday"
+	];
+
+	Date.months = [
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December"
+	];
 
 	// Cached regex to match part of string.
 	var dateMatcher = /\\?([a-z])/gi;
 
 	// HTML5 `dataset` polyfill for IE10.
-	if (Template.placeholder.dataset === undefined) {
+	if (Template.temp.dataset === undefined) {
 		Object.defineProperty(Element.prototype, "dataset", {
 			get: function () {
-				var dataset = {};
+				var dataset = {},
+					attributes = Array.apply(null, this.attributes);
 
-				Array.apply(null, this.attributes).forEach(function (attribute) {
+				attributes.forEach(function (attribute) {
 					var name = attribute.name.split("-");
 
 					if (name[1] !== undefined && name[0] === "data") {
