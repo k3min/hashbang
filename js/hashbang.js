@@ -1,4 +1,4 @@
-// Hashbang 1.3.4
+// Hashbang 1.3.5
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.3.4",
+		version: "1.3.5",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -50,6 +50,10 @@
 	var Template = HB.Template = function (type) {
 		var selector = "template[data-type={}]".format(type),
 			element = document.querySelector(selector);
+
+		if (element === null) {
+			throw new Error("TemplateError: type '{}' is not defined".format(type));
+		}
 
 		if (Template.functions[type] === undefined) {
 			var source = element.innerHTML;
@@ -172,7 +176,7 @@
 		return Object.create(this);
 	};
 
-	// Shows the `Collection`, or `Block` if `blockHandle` is specified.
+	// Shows the `Collection` (or `Block` if `blockHandle` is specified).
 	Collection.prototype.show = function (blockHandle) {
 		var data = HB.collection = blockHandle ?
 				this.search("handle", blockHandle) : this,
@@ -272,7 +276,7 @@
 		var i = 0;
 
 		if (typeof data !== "object") {
-			// `Array.apply` doesn't work with single number arrays.
+			// `Array.apply` doesn't work with arrays that consist of a single number.
 			data = [].slice.call(arguments);
 		}
 
@@ -293,7 +297,7 @@
 			month = this.getMonth(),
 			year = this.getFullYear(),
 			hours = this.getHours(),
-			twelve = hours > 12 ? hours - 12 : hours,
+			twelve = hours % 12 || 12,
 			minutes = this.getMinutes(),
 			seconds = this.getSeconds(),
 
@@ -302,7 +306,7 @@
 				D: Date.days[day].substr(0, 3),
 				j: date,
 				l: Date.days[day],
-				N: day + 1,
+				N: day || 7,
 				S: date > 3 && date <= 20 ? ord[0] : (ord[date % 10] || ord[0]),
 				w: day,
 				F: Date.months[month],
@@ -331,13 +335,13 @@
 	Date.ordinals = ["th", "st", "nd", "rd"];
 
 	Date.days = [
+		"Sunday",
 		"Monday",
 		"Tuesday",
 		"Wednesday",
 		"Thursday",
 		"Friday",
-		"Saturday",
-		"Sunday"
+		"Saturday"
 	];
 
 	Date.months = [

@@ -14,7 +14,6 @@
 		FROM blockTags bt
 			JOIN tags t ON t.id = bt.tagId
 		WHERE bt.blockId = ?
-		ORDER BY t.handle
 	');
 
 	$attributes = $db->prepare('
@@ -51,7 +50,6 @@
 				'time' => date('c', strtotime($block->time)),
 				'tags' => $tags->fetchAll(PDO::FETCH_KEY_PAIR),
 				'attributes' => $attributes->fetchAll(PDO::FETCH_KEY_PAIR),
-				'hidden' => $block->hidden === 'true',
 				'url' => sprintf('#!/%s/%s', $collection->handle, $block->handle)
 			);
 		}
