@@ -1,4 +1,4 @@
-// Hashbang 1.3.5
+// Hashbang 1.3.6
 
 // Copyright (c) 2013 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
@@ -17,7 +17,7 @@
 	var HB = root.HB = {
 
 		// Current version.
-		version: "1.3.5",
+		version: "1.3.6",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -52,10 +52,10 @@
 			element = document.querySelector(selector);
 
 		if (element === null) {
-			throw new Error("TemplateError: type '{}' is not defined".format(type));
+			throw new TemplateError(type);
 		}
 
-		if (Template.functions[type] === undefined) {
+		if (Template.sources[type] === undefined) {
 			var source = element.innerHTML;
 
 			source = source.replace(whitespaceMatcher, "");
@@ -64,31 +64,39 @@
 			source = source.split("%}").join("a.push('");
 			source = templateFunction.format(source);
 
-			Template.functions[type] = new Function(source);
+			Template.sources[type] = new Function(source);
 		}
 
+		this.range = document.createRange();
+		this.source = Template.sources[type];
 		this.type = type;
 		this.element = element;
 	};
 
 	// 
-	Template.prototype.render = function (data) {
-		Template.temp.innerHTML = Template.functions[this.type].call(data);
-		return Array.apply(null, Template.temp.childNodes);
+	Template.prototype.render = function (parent, data) {
+		this.range.selectNode(parent);
+		return this.range.createContextualFragment(this.source.call(data));
 	};
 
-	// Object to cache template functions.
-	Template.functions = {};
-
-	// Placeholder element.
-	Template.temp = document.createElement("div");
+	// Object to cache template sources.
+	Template.sources = {};
 
 	// Cached regexes to match part of string.
 	var whitespaceMatcher = /\s{2,}/g,
-		templateMatcher = /\{%=(.*?)%\}/g;
+		templateMatcher = /\{\{(.*?)\}\}/g;
 
 	// Function to construct templates.
 	var templateFunction = "var a=[];a.push('{}');return a.join('');";
+
+	// Just a extending `Error` here.
+	var TemplateError = function (type) {
+		this.name = "TemplateError";
+		this.message = "Type {} is not defined".format(type);
+	};
+
+	// Actual extending.
+	TemplateError.prototype = Object.create(Error.prototype);
 
 	// HB.Router
 	// ---------
@@ -197,9 +205,7 @@
 			HB.root.removeChild(HB.root.firstChild);
 		}
 
-		template.render(data).forEach(function (element) {
-			HB.root.appendChild(element);
-		});
+		HB.root.appendChild(template.render(HB.root, data));
 
 		document.body.classList.remove(lastType);
 		document.body.classList.add(lastType = template.type);
@@ -207,7 +213,7 @@
 		document.title = HB.title.spec.format(HB.title.text, title);
 	};
 
-	// This returns a clone of the `Collection` with found `blocks`.
+	// This returns a clone of the `Collection` with found `Collection.blocks`.
 	Collection.prototype.search = function (key, value) {
 		var data = this.clone();
 
@@ -218,7 +224,7 @@
 		return data;
 	};
 
-	// Sorts the `blocks` and returns a clone of the `Collection`.
+	// Sorts the `Collection.blocks` and returns a clone of the `Collection`.
 	Collection.prototype.sort = function (by) {
 		var data = this.clone(),
 			order = 1;
@@ -363,7 +369,7 @@
 	var dateMatcher = /\\?([a-z])/gi;
 
 	// HTML5 `dataset` polyfill for IE10.
-	if (Template.temp.dataset === undefined) {
+	if (document.documentElement.dataset === undefined) {
 		Object.defineProperty(Element.prototype, "dataset", {
 			get: function () {
 				var dataset = {},
