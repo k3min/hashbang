@@ -16,12 +16,8 @@
 				</ul>
 			</nav>
 		</header>
-		<section data-role="root">
-			<noscript>
-				<!-- JavaScript disabled -->
-			</noscript>
-		</section>
-		<template data-type="default" data-sort="-time">
+		<main id="root"></main>
+		<template id="default" data-sort="-time" is="hb-template">
 			<h1>{{ this.title }}</h1>
 			{% this.blocks.forEach(function (block) { %}
 			<article>
