@@ -1,7 +1,6 @@
-// Hashbang 2.0.0
-
-// Copyright (c) 2014 Kevin Pancake
-// Hashbang may be freely distributed under the MIT license.
+//     Hashbang 2.0.0
+//     Copyright (c) 2014 Kevin Pancake
+//     Hashbang may be freely distributed under the MIT license.
 
 
 (function(window) {
@@ -9,6 +8,7 @@
 	// Setup
 	// -----
 
+	// Save some bytes.
 	var document = window.document;
 
 	// Top-level namespace.
@@ -52,10 +52,11 @@
 		}
 	};
 
-	// Class
+	// klass
 	// -----
 
-	// Create a new class.
+	// Create a new class. Add `$static` to a method name to make it *static*.
+	// `$hidden` makes it non-enumerable. You can even define getters and setters.
 	var klass = window.klass = function(methods) {
 		var base = methods.constructor;
 
@@ -66,19 +67,28 @@
 		}
 
 		for (var i in methods) {
-			var p = i.split("$")[0],
-				o = /static/.test(i) ? base : base.prototype;
+			var property = i.split("$")[0],
+				object = /\$static/.test(i) ? base : base.prototype,
+				show = !/\$hidden|constructor/.test(i);
 
-			Object.defineProperty(o, p, {
-				enumerable: !/hidden|constructor/.test(i),
-				value: methods[i]
-			});
+			if (methods[i].get || methods[i].set) {
+				Object.defineProperty(object, property, {
+					enumerable: show,
+					get: methods[i].get,
+					set: methods[i].set
+				});
+			} else {
+				Object.defineProperty(object, property, {
+					enumerable: show,
+					value: methods[i]
+				});
+			}
 		}
 
 		return base;
 	};
 
-	// Extend an existing class.
+	// Extend an existing class. To access base *class* use `this.parent`.
 	Object.defineProperty(Object.prototype, "extend", {
 		value: klass
 	});
@@ -86,9 +96,8 @@
 	// document.registerElement
 	// ------------------------
 
+	// This is just a polyfill.
 	if (document.registerElement === undefined) {
-
-		// 
 		document.registerElement = function(element, properties) {
 			document.registerElement.elements[element] = properties;
 
@@ -113,22 +122,23 @@
 			return HTMLCustomElement;
 		};
 
-		// 
+		// Here are custom elemens stored for convenience.
 		document.registerElement.elements = {};
 
-		// 
+		// Make custom elements custom.
 		document.addEventListener("DOMContentLoaded", function() {
 			var q = [], e = document.registerElement.elements;
 
 			for (var i in e) {
-				q.push(e[i].extends ? "{}[is={}]".format(e[i].extends, i) : i);
+				q.push(e[i]["extends"] ?
+					"{}[is={}]".format(e[i]["extends"], i) : i);
 			}
 
 			Array.apply(null, document.querySelectorAll(q.join(","))).forEach(function(e) {
 				e.__proto__ = e[i].prototype;
 
-				if (e.createdCallback !== undefined) {
-					e.createdCallback.call(e);
+				if (e.attachedCallback !== undefined) {
+					e.attachedCallback.call(e);
 				}
 			});
 		}, false);
@@ -137,7 +147,7 @@
 	// HB.Template
 	// -----------
 
-	// `HTMLTemplateElement` polyfill.
+	// `window.HTMLTemplateElement` polyfill.
 	if (window.HTMLTemplateElement === undefined) {
 		window.HTMLTemplateElement = HTMLElement.extend({
 			constructor: function HTMLTemplateElement() {
@@ -146,10 +156,12 @@
 		});
 	}
 
-	// 
-	var Template = HB.Template = document.registerElement("hb-template", {
-		prototype: Object.create(HTMLTemplateElement.prototype, {
-			createdCallback: {
+	// Make the `HB.Template` *class* a custom element for ease and awesomeness.
+	HB.Template = document.registerElement("hb-template", {
+		prototype: Object.create(window.HTMLTemplateElement.prototype, {
+
+			// *Constructor*.
+			attachedCallback: {
 				value: function() {
 					var source = this.innerHTML;
 
@@ -162,6 +174,8 @@
 					this.source = new Function(source);
 				}
 			},
+
+			// This returns a HTML string.
 			render: {
 				value: function(data) {
 					return this.source.call(data);
@@ -171,15 +185,14 @@
 		extends: "template"
 	});
 
-	// 
-	Template.list = {};
-
 	// HB.Collection
 	// -------------
 
-	// 
+	// Same treatment for `HB.Collection`.
 	var Collection = HB.Collection = document.registerElement("hb-collection", {
 		prototype: Object.create(HTMLElement.prototype, {
+
+			// This method turns JSON into children.
 			load: {
 				value: function(data) {
 					this.id = data.id;
@@ -207,14 +220,14 @@
 
 	var Block = HB.Block = klass({
 
-		// 
+		// Not much to tell...
 		constructor: function Block(data) {
 			for (var key in data) {
 				this[key] = data[key];
 			}
 
 			this.time = new Date(this.time);
-			this.template = Template.list[this.type];
+			this.template = window[this.type];
 		},
 
 		// Returns the value of a property.
@@ -237,31 +250,47 @@
 
 	var Router = HB.Router = klass({
 
-		// 
+		// Set up a listener for hash changes.
 		constructor: function Router() {
 			window.addEventListener("hashchange", this.match.bind(this), false);
 		},
 
-		// 
+		// Adds a `route` — with corresponding `callback` — to the router.
 		add$hidden: function(route, callback) {
 			this[route] = callback;
 			this[route].match = new RegExp(route.replace(/:\w+/g, "(\\w+)"));
 		},
 
-		// 
+		// This gets called when `location.hash` changes,
+		// and tries to do something with the defined routes.
 		match$hidden: function() {
+			var fallback = true;
+
 			for (var i in this) {
 				var matches = location.hash.match(this[i].match);
 
 				if (matches !== null) {
 					matches.shift();
 					this[i].apply(this, matches);
+
+					fallback = false;
 				}
+			}
+
+			if (fallback && this._fallback !== undefined) {
+				this._fallback();
+			}
+		},
+
+		// Method to call if everything fails.
+		fallback$hidden: {
+			set: function(value) {
+				this._fallback = value;
 			}
 		}
 	});
 
-	// 
+	// Add the `HB.Router` *class* to the top-level namespace.
 	HB.router = new Router();
 
 	// Request
@@ -269,7 +298,7 @@
 
 	var Request = HB.Request = klass({
 
-		// 
+		// Sets up `XMLHttpRequest`.
 		constructor: function Request(endpoint) {
 			this.endpoint = endpoint;
 
@@ -277,7 +306,8 @@
 			this.xhr.addEventListener("load", Request.load.bind(this), false);
 		},
 
-		// 
+		// GET JSON from `this.endpoint` with specified `parameters`,
+		// and execute `callback` when done.
 		get: function(parameters, callback) {
 			this.callback = callback;
 
@@ -288,7 +318,7 @@
 			document.body.classList.add("loading");
 		},
 
-		// 
+		// Response to JSON.
 		load$static: function() {
 			if (this.xhr.status === 200) {
 				this.callback.call(this, JSON.parse(this.xhr.response));
@@ -306,7 +336,7 @@
 		var i = 0;
 
 		if (typeof data !== "object") {
-			// `Array.apply` doesn't work with arrays that consist of a single number.
+			// `Array.apply` doesn't work on *arrays* with a single number.
 			data = [].slice.call(arguments);
 		}
 
