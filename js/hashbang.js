@@ -9,7 +9,11 @@
 	// -----
 
 	// Save some bytes.
-	var document = window.document;
+	var document = window.document,
+		location = window.location,
+
+		defineObjectProperty = Object.defineProperty,
+		createObject = Object.create;
 
 	// Top-level namespace.
 	var HB = window.HB = {
@@ -33,6 +37,10 @@
 			this.title = {
 				text: document.title,
 				spec: document.getElementsByTagName("title")[0].dataset.spec
+			};
+
+			this.router.fallback = function() {
+				location.hash = HB.home;
 			};
 
 			this.router.add("/:collection", function(collection) {
@@ -61,7 +69,7 @@
 		var base = methods.constructor;
 
 		if (this.prototype !== undefined) {
-			base.prototype = Object.create(this.prototype, {
+			base.prototype = createObject(this.prototype, {
 				parent: { value: this.prototype }
 			});
 		}
@@ -71,14 +79,14 @@
 				object = /\$static/.test(i) ? base : base.prototype,
 				show = !/\$hidden|constructor/.test(i);
 
-			if (methods[i].get || methods[i].set) {
-				Object.defineProperty(object, property, {
+			if (methods[i].get !== undefined || methods[i].set !== undefined) {
+				defineObjectProperty(object, property, {
 					enumerable: show,
 					get: methods[i].get,
 					set: methods[i].set
 				});
 			} else {
-				Object.defineProperty(object, property, {
+				defineObjectProperty(object, property, {
 					enumerable: show,
 					value: methods[i]
 				});
@@ -89,7 +97,7 @@
 	};
 
 	// Extend an existing class. To access base *class* use `this.parent`.
-	Object.defineProperty(Object.prototype, "extend", {
+	defineObjectProperty(Object.prototype, "extend", {
 		value: klass
 	});
 
@@ -115,7 +123,7 @@
 
 			HTMLCustomElement.prototype = properties.prototype;
 
-			Object.defineProperty(HTMLCustomElement.prototype, "constructor", {
+			defineObjectProperty(HTMLCustomElement.prototype, "constructor", {
 				value: HTMLCustomElement
 			});
 
@@ -127,20 +135,19 @@
 
 		// Make custom elements custom.
 		document.addEventListener("DOMContentLoaded", function() {
-			var q = [], e = document.registerElement.elements;
+			var e = document.registerElement.elements;
 
 			for (var i in e) {
-				q.push(e[i]["extends"] ?
-					"{}[is={}]".format(e[i]["extends"], i) : i);
+				var q = e[i]["extends"] ? "{}[is={}]".format(e[i]["extends"], i) : i;
+
+				Array.apply(null, document.querySelectorAll(q)).forEach(function(self) {
+					self.__proto__ = e[i].prototype;
+
+					if (self.attachedCallback !== undefined) {
+						self.attachedCallback.call(self);
+					}
+				});
 			}
-
-			Array.apply(null, document.querySelectorAll(q.join(","))).forEach(function(e) {
-				e.__proto__ = e[i].prototype;
-
-				if (e.attachedCallback !== undefined) {
-					e.attachedCallback.call(e);
-				}
-			});
 		}, false);
 	}
 
@@ -158,7 +165,7 @@
 
 	// Make the `HB.Template` *class* a custom element for ease and awesomeness.
 	HB.Template = document.registerElement("hb-template", {
-		prototype: Object.create(window.HTMLTemplateElement.prototype, {
+		prototype: createObject(window.HTMLTemplateElement.prototype, {
 
 			// *Constructor*.
 			attachedCallback: {
@@ -190,7 +197,7 @@
 
 	// Same treatment for `HB.Collection`.
 	var Collection = HB.Collection = document.registerElement("hb-collection", {
-		prototype: Object.create(HTMLElement.prototype, {
+		prototype: createObject(HTMLElement.prototype, {
 
 			// This method turns JSON into children.
 			load: {
@@ -303,7 +310,7 @@
 			this.endpoint = endpoint;
 
 			this.xhr = new XMLHttpRequest();
-			this.xhr.addEventListener("load", Request.load.bind(this), false);
+			this.xhr.addEventListener("load", this.load.bind(this), false);
 		},
 
 		// GET JSON from `this.endpoint` with specified `parameters`,
@@ -319,9 +326,9 @@
 		},
 
 		// Response to JSON.
-		load$static: function() {
+		load: function() {
 			if (this.xhr.status === 200) {
-				this.callback.call(this, JSON.parse(this.xhr.response));
+				this.callback(JSON.parse(this.xhr.response));
 			}
 
 			document.body.classList.remove("loading");
@@ -347,8 +354,6 @@
 
 	// It's kinda like `date` in PHP.
 	Date.prototype.format = function(spec) {
-		var ord = Date.ordinals;
-
 		var date = this.getDate(),
 			day = this.getDay(),
 			month = this.getMonth(),
@@ -360,15 +365,15 @@
 
 		var options = {
 			d: date < 10 ? "0" + date : date,
-			D: Date.days[day].substr(0, 3),
+			D: days[day].substr(0, 3),
 			j: date,
-			l: Date.days[day],
+			l: days[day],
 			N: day || 7,
-			S: date > 3 && date <= 20 ? ord[0] : (ord[date % 10] || ord[0]),
+			S: date > 3 && date <= 20 ? ords[0] : (ords[date % 10] || ords[0]),
 			w: day,
-			F: Date.months[month],
+			F: months[month],
 			m: month < 10 ? "0" + (month + 1) : (month + 1),
-			M: Date.months[month].substr(0, 3),
+			M: months[month].substr(0, 3),
 			n: month + 1,
 			t: new Date(year, month + 1, 0).getDate(),
 			Y: year,
@@ -389,9 +394,9 @@
 	};
 
 	// Text strings.
-	Date.ordinals = ["th", "st", "nd", "rd"];
+	var ords = Date.ordinals = ["th", "st", "nd", "rd"];
 
-	Date.days = [
+	var days = Date.days = [
 		"Sunday",
 		"Monday",
 		"Tuesday",
@@ -401,7 +406,7 @@
 		"Saturday"
 	];
 
-	Date.months = [
+	var months = Date.months = [
 		"January",
 		"February",
 		"March",
@@ -415,4 +420,23 @@
 		"November",
 		"December"
 	];
+
+	// HTML5 `dataset` polyfill for IE10.
+	if (document.documentElement.dataset === undefined) {
+		Object.defineProperty(Element.prototype, "dataset", {
+			get: function () {
+				var dataset = {};
+
+				Array.apply(null, this.attributes).forEach(function (attribute) {
+					var name = attribute.name.split("-");
+
+					if (name[1] !== undefined && name[0] === "data") {
+						dataset[name[1]] = attribute.value;
+					}
+				});
+
+				return dataset;
+			}
+		});
+	}
 })(this);

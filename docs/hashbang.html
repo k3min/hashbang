@@ -75,7 +75,11 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> <span class="hljs-built_in">document</span> = <span class="hljs-built_in">window</span>.document;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> <span class="hljs-built_in">document</span> = <span class="hljs-built_in">window</span>.document,
+		location = <span class="hljs-built_in">window</span>.location,
+
+		defineObjectProperty = <span class="hljs-built_in">Object</span>.defineProperty,
+		createObject = <span class="hljs-built_in">Object</span>.create;</pre></div></div>
             
         </li>
         
@@ -161,6 +165,10 @@ Hashbang may be freely distributed under the MIT license.
 				spec: <span class="hljs-built_in">document</span>.getElementsByTagName(<span class="hljs-string">"title"</span>)[<span class="hljs-number">0</span>].dataset.spec
 			};
 
+			<span class="hljs-keyword">this</span>.router.fallback = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+				location.hash = HB.home;
+			};
+
 			<span class="hljs-keyword">this</span>.router.add(<span class="hljs-string">"/:collection"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(collection)</span> </span>{
 				<span class="hljs-keyword">if</span> (HB.collections[collection] === <span class="hljs-literal">undefined</span>) {
 					HB.request.get({ handle: collection }, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> </span>{
@@ -221,7 +229,7 @@ Hashbang may be freely distributed under the MIT license.
 		<span class="hljs-keyword">var</span> base = methods.constructor;
 
 		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.prototype !== <span class="hljs-literal">undefined</span>) {
-			base.prototype = <span class="hljs-built_in">Object</span>.create(<span class="hljs-keyword">this</span>.prototype, {
+			base.prototype = createObject(<span class="hljs-keyword">this</span>.prototype, {
 				parent: { value: <span class="hljs-keyword">this</span>.prototype }
 			});
 		}
@@ -231,14 +239,14 @@ Hashbang may be freely distributed under the MIT license.
 				object = <span class="hljs-regexp">/\$static/</span>.test(i) ? base : base.prototype,
 				show = !<span class="hljs-regexp">/\$hidden|constructor/</span>.test(i);
 
-			<span class="hljs-keyword">if</span> (methods[i].get || methods[i].set) {
-				<span class="hljs-built_in">Object</span>.defineProperty(object, property, {
+			<span class="hljs-keyword">if</span> (methods[i].get !== <span class="hljs-literal">undefined</span> || methods[i].set !== <span class="hljs-literal">undefined</span>) {
+				defineObjectProperty(object, property, {
 					enumerable: show,
 					get: methods[i].get,
 					set: methods[i].set
 				});
 			} <span class="hljs-keyword">else</span> {
-				<span class="hljs-built_in">Object</span>.defineProperty(object, property, {
+				defineObjectProperty(object, property, {
 					enumerable: show,
 					value: methods[i]
 				});
@@ -261,7 +269,7 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">Object</span>.defineProperty(<span class="hljs-built_in">Object</span>.prototype, <span class="hljs-string">"extend"</span>, {
+            <div class="content"><div class='highlight'><pre>	defineObjectProperty(<span class="hljs-built_in">Object</span>.prototype, <span class="hljs-string">"extend"</span>, {
 		value: klass
 	});</pre></div></div>
             
@@ -321,7 +329,7 @@ Hashbang may be freely distributed under the MIT license.
 
 			HTMLCustomElement.prototype = properties.prototype;
 
-			<span class="hljs-built_in">Object</span>.defineProperty(HTMLCustomElement.prototype, <span class="hljs-string">"constructor"</span>, {
+			defineObjectProperty(HTMLCustomElement.prototype, <span class="hljs-string">"constructor"</span>, {
 				value: HTMLCustomElement
 			});
 
@@ -357,20 +365,19 @@ Hashbang may be freely distributed under the MIT license.
             </div>
             
             <div class="content"><div class='highlight'><pre>		<span class="hljs-built_in">document</span>.addEventListener(<span class="hljs-string">"DOMContentLoaded"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
-			<span class="hljs-keyword">var</span> q = [], e = <span class="hljs-built_in">document</span>.registerElement.elements;
+			<span class="hljs-keyword">var</span> e = <span class="hljs-built_in">document</span>.registerElement.elements;
 
 			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> e) {
-				q.push(e[i][<span class="hljs-string">"extends"</span>] ?
-					<span class="hljs-string">"{}[is={}]"</span>.format(e[i][<span class="hljs-string">"extends"</span>], i) : i);
+				<span class="hljs-keyword">var</span> q = e[i][<span class="hljs-string">"extends"</span>] ? <span class="hljs-string">"{}[is={}]"</span>.format(e[i][<span class="hljs-string">"extends"</span>], i) : i;
+
+				<span class="hljs-built_in">Array</span>.apply(<span class="hljs-literal">null</span>, <span class="hljs-built_in">document</span>.querySelectorAll(q)).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(self)</span> </span>{
+					self.__proto__ = e[i].prototype;
+
+					<span class="hljs-keyword">if</span> (self.attachedCallback !== <span class="hljs-literal">undefined</span>) {
+						self.attachedCallback.call(self);
+					}
+				});
 			}
-
-			<span class="hljs-built_in">Array</span>.apply(<span class="hljs-literal">null</span>, <span class="hljs-built_in">document</span>.querySelectorAll(q.join(<span class="hljs-string">","</span>))).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> </span>{
-				e.__proto__ = e[i].prototype;
-
-				<span class="hljs-keyword">if</span> (e.attachedCallback !== <span class="hljs-literal">undefined</span>) {
-					e.attachedCallback.call(e);
-				}
-			});
 		}, <span class="hljs-literal">false</span>);
 	}</pre></div></div>
             
@@ -434,7 +441,7 @@ Hashbang may be freely distributed under the MIT license.
             </div>
             
             <div class="content"><div class='highlight'><pre>	HB.Template = <span class="hljs-built_in">document</span>.registerElement(<span class="hljs-string">"hb-template"</span>, {
-		prototype: <span class="hljs-built_in">Object</span>.create(<span class="hljs-built_in">window</span>.HTMLTemplateElement.prototype, {</pre></div></div>
+		prototype: createObject(<span class="hljs-built_in">window</span>.HTMLTemplateElement.prototype, {</pre></div></div>
             
         </li>
         
@@ -524,7 +531,7 @@ Hashbang may be freely distributed under the MIT license.
             </div>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> Collection = HB.Collection = <span class="hljs-built_in">document</span>.registerElement(<span class="hljs-string">"hb-collection"</span>, {
-		prototype: <span class="hljs-built_in">Object</span>.create(HTMLElement.prototype, {</pre></div></div>
+		prototype: createObject(HTMLElement.prototype, {</pre></div></div>
             
         </li>
         
@@ -814,7 +821,7 @@ and tries to do something with the defined routes.</p>
 			<span class="hljs-keyword">this</span>.endpoint = endpoint;
 
 			<span class="hljs-keyword">this</span>.xhr = <span class="hljs-keyword">new</span> XMLHttpRequest();
-			<span class="hljs-keyword">this</span>.xhr.addEventListener(<span class="hljs-string">"load"</span>, Request.load.bind(<span class="hljs-keyword">this</span>), <span class="hljs-literal">false</span>);
+			<span class="hljs-keyword">this</span>.xhr.addEventListener(<span class="hljs-string">"load"</span>, <span class="hljs-keyword">this</span>.load.bind(<span class="hljs-keyword">this</span>), <span class="hljs-literal">false</span>);
 		},</pre></div></div>
             
         </li>
@@ -854,9 +861,9 @@ and execute <code>callback</code> when done.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		load$static: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>		load: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
 			<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.xhr.status === <span class="hljs-number">200</span>) {
-				<span class="hljs-keyword">this</span>.callback.call(<span class="hljs-keyword">this</span>, <span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">this</span>.xhr.response));
+				<span class="hljs-keyword">this</span>.callback(<span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">this</span>.xhr.response));
 			}
 
 			<span class="hljs-built_in">document</span>.body.classList.remove(<span class="hljs-string">"loading"</span>);
@@ -941,8 +948,6 @@ and execute <code>callback</code> when done.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">Date</span>.prototype.format = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(spec)</span> </span>{
-		<span class="hljs-keyword">var</span> ord = <span class="hljs-built_in">Date</span>.ordinals;
-
 		<span class="hljs-keyword">var</span> date = <span class="hljs-keyword">this</span>.getDate(),
 			day = <span class="hljs-keyword">this</span>.getDay(),
 			month = <span class="hljs-keyword">this</span>.getMonth(),
@@ -954,15 +959,15 @@ and execute <code>callback</code> when done.</p>
 
 		<span class="hljs-keyword">var</span> options = {
 			d: date &lt; <span class="hljs-number">10</span> ? <span class="hljs-string">"0"</span> + date : date,
-			D: <span class="hljs-built_in">Date</span>.days[day].substr(<span class="hljs-number">0</span>, <span class="hljs-number">3</span>),
+			D: days[day].substr(<span class="hljs-number">0</span>, <span class="hljs-number">3</span>),
 			j: date,
-			l: <span class="hljs-built_in">Date</span>.days[day],
+			l: days[day],
 			N: day || <span class="hljs-number">7</span>,
-			S: date &gt; <span class="hljs-number">3</span> &amp;&amp; date &lt;= <span class="hljs-number">20</span> ? ord[<span class="hljs-number">0</span>] : (ord[date % <span class="hljs-number">10</span>] || ord[<span class="hljs-number">0</span>]),
+			S: date &gt; <span class="hljs-number">3</span> &amp;&amp; date &lt;= <span class="hljs-number">20</span> ? ords[<span class="hljs-number">0</span>] : (ords[date % <span class="hljs-number">10</span>] || ords[<span class="hljs-number">0</span>]),
 			w: day,
-			F: <span class="hljs-built_in">Date</span>.months[month],
+			F: months[month],
 			m: month &lt; <span class="hljs-number">10</span> ? <span class="hljs-string">"0"</span> + (month + <span class="hljs-number">1</span>) : (month + <span class="hljs-number">1</span>),
-			M: <span class="hljs-built_in">Date</span>.months[month].substr(<span class="hljs-number">0</span>, <span class="hljs-number">3</span>),
+			M: months[month].substr(<span class="hljs-number">0</span>, <span class="hljs-number">3</span>),
 			n: month + <span class="hljs-number">1</span>,
 			t: <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(year, month + <span class="hljs-number">1</span>, <span class="hljs-number">0</span>).getDate(),
 			Y: year,
@@ -995,9 +1000,9 @@ and execute <code>callback</code> when done.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">Date</span>.ordinals = [<span class="hljs-string">"th"</span>, <span class="hljs-string">"st"</span>, <span class="hljs-string">"nd"</span>, <span class="hljs-string">"rd"</span>];
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> ords = <span class="hljs-built_in">Date</span>.ordinals = [<span class="hljs-string">"th"</span>, <span class="hljs-string">"st"</span>, <span class="hljs-string">"nd"</span>, <span class="hljs-string">"rd"</span>];
 
-	<span class="hljs-built_in">Date</span>.days = [
+	<span class="hljs-keyword">var</span> days = <span class="hljs-built_in">Date</span>.days = [
 		<span class="hljs-string">"Sunday"</span>,
 		<span class="hljs-string">"Monday"</span>,
 		<span class="hljs-string">"Tuesday"</span>,
@@ -1007,7 +1012,7 @@ and execute <code>callback</code> when done.</p>
 		<span class="hljs-string">"Saturday"</span>
 	];
 
-	<span class="hljs-built_in">Date</span>.months = [
+	<span class="hljs-keyword">var</span> months = <span class="hljs-built_in">Date</span>.months = [
 		<span class="hljs-string">"January"</span>,
 		<span class="hljs-string">"February"</span>,
 		<span class="hljs-string">"March"</span>,
@@ -1020,7 +1025,38 @@ and execute <code>callback</code> when done.</p>
 		<span class="hljs-string">"October"</span>,
 		<span class="hljs-string">"November"</span>,
 		<span class="hljs-string">"December"</span>
-	];
+	];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-51">&#182;</a>
+              </div>
+              <p>HTML5 <code>dataset</code> polyfill for IE10.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">document</span>.documentElement.dataset === <span class="hljs-literal">undefined</span>) {
+		<span class="hljs-built_in">Object</span>.defineProperty(Element.prototype, <span class="hljs-string">"dataset"</span>, {
+			get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+				<span class="hljs-keyword">var</span> dataset = {};
+
+				<span class="hljs-built_in">Array</span>.apply(<span class="hljs-literal">null</span>, <span class="hljs-keyword">this</span>.attributes).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(attribute)</span> </span>{
+					<span class="hljs-keyword">var</span> name = attribute.name.split(<span class="hljs-string">"-"</span>);
+
+					<span class="hljs-keyword">if</span> (name[<span class="hljs-number">1</span>] !== <span class="hljs-literal">undefined</span> &amp;&amp; name[<span class="hljs-number">0</span>] === <span class="hljs-string">"data"</span>) {
+						dataset[name[<span class="hljs-number">1</span>]] = attribute.value;
+					}
+				});
+
+				<span class="hljs-keyword">return</span> dataset;
+			}
+		});
+	}
 })(<span class="hljs-keyword">this</span>);</pre></div></div>
             
         </li>
