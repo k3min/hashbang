@@ -12,7 +12,7 @@
 	var document = window.document,
 		location = window.location,
 
-		defineObjectProp = Object.defineProperty,
+		define = Object.defineProperty,
 		clone = Object.create;
 
 	// Top-level namespace.
@@ -39,24 +39,43 @@
 				spec: document.getElementsByTagName("title")[0].dataset.spec
 			};
 
-			this.router.fallback = function() {
-				location.hash = HB.home;
-			};
+			this.router.fallback = this.fallback;
 
 			this.router.add("/:collection", function(collection) {
 				if (HB.collections[collection] === undefined) {
-					HB.request.get({ handle: collection }, function(data) {
-						HB.collections[collection] = new Collection();
-						HB.collections[collection].load(data);
+					HB.collections[collection] = new Collection();
 
-						HB.root.appendChild(HB.collections[collection]);
+					HB.request.get({
+						handle: collection,
+						success: function(data) {
+							HB.collections[collection].load(data);
+						},
+						error: function() {
+							delete HB.collections[collection];
+							HB.fallback();
+						}
 					});
 				} else {
-					HB.root.appendChild(HB.collections[collection]);
+					HB.collections[collection].block = undefined;
 				}
+
+				while (HB.root.firstChild) {
+					HB.root.removeChild(HB.root.firstChild);
+				}
+
+				HB.root.appendChild(HB.collections[collection]);
+			});
+
+			this.router.add("/:collection/:block", function(collection, block) {
+				HB.collections[collection].block = block;
 			});
 
 			this.router.match();
+		},
+
+		// Function to call if collection is not found.
+		fallback: function() {
+			location.hash = HB.home;
 		}
 	};
 
@@ -68,6 +87,7 @@
 	var klass = window.klass = function(methods) {
 		var base = methods.constructor;
 
+		// If extending...
 		if (this.prototype !== undefined) {
 			base.prototype = clone(this.prototype, {
 				parent: { value: this.prototype }
@@ -80,13 +100,13 @@
 				show = !/\$hidden|constructor/.test(i);
 
 			if (methods[i].get !== undefined || methods[i].set !== undefined) {
-				defineObjectProp(object, property, {
+				define(object, property, {
 					enumerable: show,
 					get: methods[i].get,
 					set: methods[i].set
 				});
 			} else {
-				defineObjectProp(object, property, {
+				define(object, property, {
 					enumerable: show,
 					value: methods[i]
 				});
@@ -97,7 +117,7 @@
 	};
 
 	// Extend an existing class. To access base *class* use `this.parent`.
-	defineObjectProp(Object.prototype, "extend", {
+	define(Object.prototype, "extend", {
 		value: klass
 	});
 
@@ -110,16 +130,16 @@
 		// Here are custom elemens stored for convenience.
 		var customElements = {};
 
-		// Function to make custom elements custom.
-		var register = function(element, props) {
+		// Function to make a custom element custom.
+		var register = function(e, p) {
 			if (/MSIE 10/.test(navigator.appVersion)) {
-				Array.apply(null, Object.getOwnPropertyNames(props)).forEach(function(p) {
-					if (p !== "constructor") {
-						defineObjectProp(element, p, { value: props[p] });
+				Array.apply(null, Object.getOwnPropertyNames(p)).forEach(function(n) {
+					if (n !== "constructor") {
+						define(e, n, { value: p[n] });
 					}
 				});
 			} else {
-				element.__proto__ = props;
+				e.__proto__ = p;
 			}
 		};
 
@@ -137,7 +157,7 @@
 
 			HTMLCustomElement.prototype = props.prototype;
 
-			defineObjectProp(HTMLCustomElement.prototype, "constructor", {
+			define(HTMLCustomElement.prototype, "constructor", {
 				value: HTMLCustomElement
 			});
 
@@ -168,7 +188,7 @@
 	if (window.HTMLTemplateElement === undefined) {
 		window.HTMLTemplateElement = HTMLElement.extend({
 			constructor: function HTMLTemplateElement() {
-				this.parent.constructor.apply(this, arguments);
+				console.error("Illegal constructor");
 			}
 		});
 	}
@@ -178,26 +198,22 @@
 		prototype: clone(window.HTMLTemplateElement.prototype, {
 
 			// *Constructor*.
-			attachedCallback: {
-				value: function() {
-					var source = this.innerHTML;
+			attachedCallback: { value: function() {
+				var source = this.innerHTML;
 
-					source = source.replace(/\s{2,}/g, "");
-					source = source.replace(/\{\{(.*?)\}\}/g, "',$1,'");
-					source = source.split("{%").join("');");
-					source = source.split("%}").join("a.push('");
-					source = "var a=[];a.push('{}');return a.join('');".format(source);
+				source = source.replace(/\s{2,}/g, "");
+				source = source.replace(/\{\{(.*?)\}\}/g, "',$1,'");
+				source = source.split("{%").join("');");
+				source = source.split("%}").join("a.push('");
+				source = "var a=[];a.push('{}');return a.join('');".format(source);
 
-					this.source = new Function(source);
-				}
-			},
+				this.source = new Function(source);
+			}},
 
 			// This returns a HTML string.
-			render: {
-				value: function(data) {
-					return this.source.call(data);
-				}
-			}
+			render: { value: function(data) {
+				return this.source.call(data);
+			}}
 		}),
 		extends: "template"
 	});
@@ -210,25 +226,92 @@
 		prototype: clone(HTMLElement.prototype, {
 
 			// This method turns JSON into children.
-			load: {
-				value: function(data) {
-					this.id = data.id;
-					this.handle = data.handle;
-					this.title = data.title;
-					this.type = data.type;
-					this.template = window[data.type];
+			load: { value: function(data) {
+				this.id = data.id;
+				this.handle = data.handle;
+				this.title = data.title;
+				this.type = data.type;
+				this.template = window[data.type];
 
-					this.blocks = data.blocks.map(function(data) {
-						return new Block(data);
-					});
+				this.blocks = data.blocks.map(function(data) {
+					return new Block(data);
+				});
 
-					if (this.template !== undefined) {
-						this.insertAdjacentHTML("beforeend", this.template.render(this));
-					} else {
-						console.error("Template '{}' is not defined".format(data.type));
+				if (this.template.dataset.sort !== undefined) {
+					this.sort(this.template.dataset.sort);
+				} else {
+					this.update();
+				}
+			}},
+
+			// This getter/setter gets/sets the current shown block.
+			block: {
+				get: function() { return this.currentBlock; },
+				set: function(block) {
+					this._block = block;
+
+					if (this.blocks !== undefined) {
+						this.update();
 					}
 				}
-			}
+			},
+
+			// Sorts `this.blocks` by `by` and updates the collection.
+			// Uses `block.reduce`, and if `by` starts with a `-`, guess what?
+			sort: { value: function(by) {
+				var order = by[0] === "-" ?
+					(by = by.substr(1), -1) : 1;
+
+				this.blocks.sort(function (a, b) {
+					a = a.reduce(by);
+					b = b.reduce(by);
+
+					return (a < b ? -1 : a > b ? 1 : 0) * order;
+				});
+
+				this.update();
+			}},
+
+			// This returns a clone of the collection with found `this.blocks`.
+			search: { value: function (key, value) {
+				var data = clone(this);
+
+				data.blocks = data.blocks.filter(function (block) {
+					return block.reduce(key) === value;
+				});
+
+				return data;
+			}},
+
+			// Updates the collection.
+			update: { value: function() {
+				var data = HB.collection = this._block === undefined ?
+					this : this.search("handle", this._block);
+
+				var title = this.title,
+					type = this.type,
+					template = this.template;
+
+				if (this._block !== undefined) {
+					if (data.blocks.length === 0) {
+						return (location.hash = "#!/" + this.handle);
+					}
+
+					title = data.blocks[0].title;
+					type = data.blocks[0].type;
+					template = data.blocks[0].template;
+				}
+
+				if (template === undefined) {
+					return console.error("Template '{}' is not defined".format(type));
+				}
+
+				while (this.firstChild) {
+					this.removeChild(this.firstChild);
+				}
+
+				this.insertAdjacentHTML("beforeend", template.render(data));
+			}}
 		})
 	});
 
@@ -247,7 +330,7 @@
 			this.template = window[this.type];
 		},
 
-		// Returns the value of a property.
+		// Returns the value of a property. Like `attributes.example`.
 		reduce: function(to) {
 			var find = to.split("."),
 				result = this[find[0]];
@@ -267,7 +350,7 @@
 
 	var Router = HB.Router = klass({
 
-		// Set up a listener for hash changes.
+		// *Constructor* sets up a listener for hash changes.
 		constructor: function Router() {
 			window.addEventListener("hashchange", this.match.bind(this), false);
 		},
@@ -284,6 +367,10 @@
 			var fallback = true;
 
 			for (var i in this) {
+				if (i === "fallback") {
+					continue;
+				}
+
 				var matches = location.hash.match(this[i].match);
 
 				if (matches !== null) {
@@ -294,17 +381,8 @@
 				}
 			}
 
-			if (fallback && this._fallback !== undefined) {
-				this._fallback();
-			}
-		},
-
-		// Method to call if everything fails.
-		fallback$hidden: {
-			set: function(value) {
-				defineObjectProp(this, "_fallback", {
-					value: value
-				});
+			if (fallback && this.fallback !== undefined) {
+				this.fallback();
 			}
 		}
 	});
@@ -325,12 +403,13 @@
 			this.xhr.addEventListener("load", this.load.bind(this), false);
 		},
 
-		// GET JSON from `this.endpoint` with specified `parameters`,
-		// and execute `callback` when done.
-		get: function(parameters, callback) {
-			this.callback = callback;
+		// GET JSON from `this.endpoint` with specified `props`.
+		// Calls `props.success` if all good, else `props.error`.
+		get: function(props) {
+			this.success = props.success;
+			this.error = props.error;
 
-			this.xhr.open("GET", this.endpoint.format(parameters), true);
+			this.xhr.open("GET", this.endpoint.format(props), true);
 			this.xhr.setRequestHeader("Accept", "application/json");
 			this.xhr.send(null);
 
@@ -339,8 +418,12 @@
 
 		// Response to JSON.
 		load: function() {
+			var data = JSON.parse(this.xhr.response);
+
 			if (this.xhr.status === 200) {
-				this.callback(JSON.parse(this.xhr.response));
+				this.success(data);
+			} else if (this.error !== undefined) {
+				this.error(data);
 			}
 
 			document.body.classList.remove("loading");
@@ -435,15 +518,15 @@
 
 	// HTML5 `dataset` polyfill for IE10.
 	if (document.documentElement.dataset === undefined) {
-		defineObjectProp(Element.prototype, "dataset", {
+		define(Element.prototype, "dataset", {
 			get: function () {
 				var dataset = {};
 
-				Array.apply(null, this.attributes).forEach(function (attribute) {
-					var name = attribute.name.split("-");
+				Array.apply(null, this.attributes).forEach(function (a) {
+					var name = a.name.split("-");
 
 					if (name[1] !== undefined && name[0] === "data") {
-						dataset[name[1]] = attribute.value;
+						dataset[name[1]] = a.value;
 					}
 				});
 
