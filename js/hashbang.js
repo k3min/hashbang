@@ -12,8 +12,8 @@
 	var document = window.document,
 		location = window.location,
 
-		defineObjectProperty = Object.defineProperty,
-		createObject = Object.create;
+		defineObjectProp = Object.defineProperty,
+		clone = Object.create;
 
 	// Top-level namespace.
 	var HB = window.HB = {
@@ -69,7 +69,7 @@
 		var base = methods.constructor;
 
 		if (this.prototype !== undefined) {
-			base.prototype = createObject(this.prototype, {
+			base.prototype = clone(this.prototype, {
 				parent: { value: this.prototype }
 			});
 		}
@@ -80,13 +80,13 @@
 				show = !/\$hidden|constructor/.test(i);
 
 			if (methods[i].get !== undefined || methods[i].set !== undefined) {
-				defineObjectProperty(object, property, {
+				defineObjectProp(object, property, {
 					enumerable: show,
 					get: methods[i].get,
 					set: methods[i].set
 				});
 			} else {
-				defineObjectProperty(object, property, {
+				defineObjectProp(object, property, {
 					enumerable: show,
 					value: methods[i]
 				});
@@ -97,7 +97,7 @@
 	};
 
 	// Extend an existing class. To access base *class* use `this.parent`.
-	defineObjectProperty(Object.prototype, "extend", {
+	defineObjectProp(Object.prototype, "extend", {
 		value: klass
 	});
 
@@ -106,45 +106,55 @@
 
 	// This is just a polyfill.
 	if (document.registerElement === undefined) {
-		document.registerElement = function(element, properties) {
-			document.registerElement.elements[element] = properties;
+
+		// Here are custom elemens stored for convenience.
+		var customElements = {};
+
+		// Function to make custom elements custom.
+		var register = function(element, props) {
+			if (/MSIE 10/.test(navigator.appVersion)) {
+				Array.apply(null, Object.getOwnPropertyNames(props)).forEach(function(p) {
+					if (p !== "constructor") {
+						defineObjectProp(element, p, { value: props[p] });
+					}
+				});
+			} else {
+				element.__proto__ = props;
+			}
+		};
+
+		// This is (almost) the same as the real deal.
+		document.registerElement = function(element, props) {
+			customElements[element] = props;
 
 			var HTMLCustomElement = function HTMLCustomElement() {
 				var custom = document.createElement(element);
 
-				custom.__proto__ = properties.prototype;
-
-				if (custom.createdCallback !== undefined) {
-					custom.createdCallback.call(element);
-				}
+				register(custom, props.prototype);
 
 				return custom;
 			};
 
-			HTMLCustomElement.prototype = properties.prototype;
+			HTMLCustomElement.prototype = props.prototype;
 
-			defineObjectProperty(HTMLCustomElement.prototype, "constructor", {
+			defineObjectProp(HTMLCustomElement.prototype, "constructor", {
 				value: HTMLCustomElement
 			});
 
 			return HTMLCustomElement;
 		};
 
-		// Here are custom elemens stored for convenience.
-		document.registerElement.elements = {};
-
-		// Make custom elements custom.
+		// Make existing custom elements custom.
 		document.addEventListener("DOMContentLoaded", function() {
-			var e = document.registerElement.elements;
+			for (var i in customElements) {
+				var q = customElements[i]["extends"] ?
+					"{}[is={}]".format(customElements[i]["extends"], i) : i;
 
-			for (var i in e) {
-				var q = e[i]["extends"] ? "{}[is={}]".format(e[i]["extends"], i) : i;
+				Array.apply(null, document.querySelectorAll(q)).forEach(function(e) {
+					register(e, customElements[i].prototype);
 
-				Array.apply(null, document.querySelectorAll(q)).forEach(function(self) {
-					self.__proto__ = e[i].prototype;
-
-					if (self.attachedCallback !== undefined) {
-						self.attachedCallback.call(self);
+					if (e.attachedCallback !== undefined) {
+						e.attachedCallback.call(e);
 					}
 				});
 			}
@@ -165,7 +175,7 @@
 
 	// Make the `HB.Template` *class* a custom element for ease and awesomeness.
 	HB.Template = document.registerElement("hb-template", {
-		prototype: createObject(window.HTMLTemplateElement.prototype, {
+		prototype: clone(window.HTMLTemplateElement.prototype, {
 
 			// *Constructor*.
 			attachedCallback: {
@@ -197,7 +207,7 @@
 
 	// Same treatment for `HB.Collection`.
 	var Collection = HB.Collection = document.registerElement("hb-collection", {
-		prototype: createObject(HTMLElement.prototype, {
+		prototype: clone(HTMLElement.prototype, {
 
 			// This method turns JSON into children.
 			load: {
@@ -292,7 +302,9 @@
 		// Method to call if everything fails.
 		fallback$hidden: {
 			set: function(value) {
-				this._fallback = value;
+				defineObjectProp(this, "_fallback", {
+					value: value
+				});
 			}
 		}
 	});
@@ -423,7 +435,7 @@
 
 	// HTML5 `dataset` polyfill for IE10.
 	if (document.documentElement.dataset === undefined) {
-		Object.defineProperty(Element.prototype, "dataset", {
+		defineObjectProp(Element.prototype, "dataset", {
 			get: function () {
 				var dataset = {};
 
