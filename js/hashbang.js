@@ -1,23 +1,27 @@
-// Hashbang 1.3.6
+//     Hashbang 2.0.0
+//     Copyright (c) 2014 Kevin Pancake
+//     Hashbang may be freely distributed under the MIT license.
 
-// Copyright (c) 2013 Kevin Pancake
-// Hashbang may be freely distributed under the MIT license.
 
-
-(function (root) {
-	"use strict";
+(function(window) {
 
 	// Setup
 	// -----
 
-	var document = root.document,
-		location = root.location;
+	// Save some bytes.
+	var document = window.document,
+		location = window.location,
+
+		define = Object.defineProperty,
+		clone = Object.create,
+
+		isIE = /MSIE 10/.test(navigator.appVersion);
 
 	// Top-level namespace.
-	var HB = root.HB = {
+	var HB = window.HB = {
 
 		// Current version.
-		version: "1.3.6",
+		version: "2.0.0",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -25,322 +29,492 @@
 		// This holds all the requested collections.
 		collections: {},
 
-		// Turn off `cache` to disable the use of cached collections.
-		cache: true,
-
 		// Call this to fire up Hashbang.
-		main: function (home, root) {
-			this.home = home || document.getElementsByTagName("a")[0].hash;
-			this.root = root || document.querySelector("[data-role=root]");
+		main: function(home, root) {
+			this.request = new Request(this.endpoint);
 
+			// Hashbang will go back to this hash is something goes wrong.
+			this.home = home || document.links[0].hash;
+
+			// Element where the magic happens.
+			this.root = root || window.root;
+
+			// Object to hold some title properties.
 			this.title = {
 				text: document.title,
 				spec: document.getElementsByTagName("title")[0].dataset.spec
 			};
 
-			this.router = new Router();
+			// Set up fallback in case `HB.router` doesn't know what to do.
+			this.router.fallback = this.fallback;
+
+			this.router.add("/:collection", function(c) {
+				if (HB.collections[c] === undefined) {
+					HB.collections[c] = new Collection();
+					HB.collections[c].addEventListener("update", HB.update, false);
+
+					HB.request.get({
+						handle: c,
+						success: function(data) {
+							HB.collections[c].load(data);
+						},
+						error: function() {
+							delete HB.collections[c];
+							HB.fallback();
+						}
+					});
+				} else {
+					// TODO: Fix this ugly hack.
+					HB.collections[c].block = undefined;
+				}
+
+				while (HB.root.firstChild) {
+					HB.root.removeChild(HB.root.firstChild);
+				}
+
+				HB.root.appendChild(HB.collections[c]);
+			});
+
+			this.router.add("/:collection/:block", function(c, b) {
+				HB.collections[c].block = b;
+			});
+
 			this.router.match();
+		},
+
+		// This gets called when a collection updates.
+		update: function(e) {
+			document.title = HB.title.spec.format(HB.title.text, e.detail.title);
+		},
+
+		// Function to call if collection is not found.
+		fallback: function() {
+			location.hash = HB.home;
 		}
 	};
+
+	// klass
+	// -----
+
+	// Create a new class. Add `$static` to a method name to make it *static*.
+	// `$hidden` makes it non-enumerable. You can even define getters and setters.
+	var klass = window.klass = function(methods) {
+		var base = methods.constructor;
+
+		// If extending...
+		if (this.prototype !== undefined) {
+			base.prototype = clone(this.prototype, {
+				parent: { value: this.prototype }
+			});
+		}
+
+		for (var i in methods) {
+			var property = i.split("$")[0],
+				object = /\$static/.test(i) ? base : base.prototype,
+				show = !/\$hidden|constructor/.test(i);
+
+			if (methods[i].get !== undefined || methods[i].set !== undefined) {
+				define(object, property, {
+					enumerable: show,
+					get: methods[i].get,
+					set: methods[i].set
+				});
+			} else {
+				define(object, property, {
+					enumerable: show,
+					value: methods[i]
+				});
+			}
+		}
+
+		return base;
+	};
+
+	// Extend an existing class. To access base *class* use `this.parent`.
+	define(Object.prototype, "extend", {
+		value: klass
+	});
+
+	// document.registerElement
+	// ------------------------
+
+	// This is just a polyfill.
+	if (document.registerElement === undefined) {
+
+		// Here are custom elemens stored for convenience.
+		var customElements = {};
+
+		// Function to make a custom element custom.
+		var register = function(e, p) {
+			if (isIE) {
+				Array.apply(null, Object.getOwnPropertyNames(p)).forEach(function(n) {
+					if (n !== "constructor") {
+						define(e, n, { value: p[n] });
+					}
+				});
+			} else {
+				e.__proto__ = p;
+			}
+		};
+
+		// This is (almost) the same as the real deal.
+		document.registerElement = function(element, props) {
+			customElements[element] = props;
+
+			var HTMLCustomElement = function HTMLCustomElement() {
+				var custom = document.createElement(element);
+
+				register(custom, props.prototype);
+
+				return custom;
+			};
+
+			HTMLCustomElement.prototype = props.prototype;
+
+			define(HTMLCustomElement.prototype, "constructor", {
+				value: HTMLCustomElement
+			});
+
+			return HTMLCustomElement;
+		};
+
+		// Make existing custom elements custom.
+		document.addEventListener("DOMContentLoaded", function() {
+			for (var i in customElements) {
+				var q = customElements[i]["extends"] ?
+					"{}[is={}]".format(customElements[i]["extends"], i) : i;
+
+				Array.apply(null, document.querySelectorAll(q)).forEach(function(e) {
+					register(e, customElements[i].prototype);
+
+					if (e.attachedCallback !== undefined) {
+						e.attachedCallback.call(e);
+					}
+				});
+			}
+		}, false);
+
+		// TODO: `MutationObserver` here.
+	}
 
 	// HB.Template
 	// -----------
 
-	// 
-	var Template = HB.Template = function (type) {
-		var selector = "template[data-type={}]".format(type),
-			element = document.querySelector(selector);
-
-		if (element === null) {
-			throw new TemplateError(type);
-		}
-
-		if (Template.sources[type] === undefined) {
-			var source = element.innerHTML;
-
-			source = source.replace(whitespaceMatcher, "");
-			source = source.replace(templateMatcher, "',$1,'");
-			source = source.split("{%").join("');");
-			source = source.split("%}").join("a.push('");
-			source = templateFunction.format(source);
-
-			Template.sources[type] = new Function(source);
-		}
-
-		this.range = document.createRange();
-		this.source = Template.sources[type];
-		this.type = type;
-		this.element = element;
-	};
-
-	// 
-	Template.prototype.render = function (parent, data) {
-		this.range.selectNode(parent);
-		return this.range.createContextualFragment(this.source.call(data));
-	};
-
-	// Object to cache template sources.
-	Template.sources = {};
-
-	// Cached regexes to match part of string.
-	var whitespaceMatcher = /\s{2,}/g,
-		templateMatcher = /\{\{(.*?)\}\}/g;
-
-	// Function to construct templates.
-	var templateFunction = "var a=[];a.push('{}');return a.join('');";
-
-	// Just a extending `Error` here.
-	var TemplateError = function (type) {
-		this.name = "TemplateError";
-		this.message = "Type {} is not defined".format(type);
-	};
-
-	// Actual extending.
-	TemplateError.prototype = Object.create(Error.prototype);
-
-	// HB.Router
-	// ---------
-
-	// 
-	var Router = HB.Router = function () {
-		this.route = [];
-		root.addEventListener("hashchange", this.match.bind(this), false);
-	};
-
-	// 
-	Router.prototype.match = function () {
-		var hash = location.hash.split("#!/")[1];
-
-		if (hash !== undefined) {
-			this.route = hash.split("/");
-
-			if (HB.collections[this.route[0]] !== undefined && HB.cache) {
-				HB.collections[this.route[0]].show(this.route[1]);
-			} else {
-				HB.request.get({
-					handle: this.route[0]
-				});
+	// `window.HTMLTemplateElement` polyfill.
+	if (window.HTMLTemplateElement === undefined) {
+		window.HTMLTemplateElement = HTMLElement.extend({
+			constructor: function HTMLTemplateElement() {
+				console.error("Illegal constructor");
 			}
-		} else {
-			location.hash = HB.home;
-		}
-	};
+		});
+	}
 
-	// HB.Request
-	// ----------
+	// Make the `HB.Template` *class* a custom element for ease and awesomeness.
+	HB.Template = document.registerElement("hb-template", {
+		prototype: clone(window.HTMLTemplateElement.prototype, {
 
-	// 
-	var Request = HB.Request = function () {
-		this.xhr = new XMLHttpRequest();
-		this.xhr.addEventListener("load", Request.callback, false);
-	};
+			// *Constructor*.
+			attachedCallback: { value: function() {
+				var source = this.innerHTML;
 
-	// 
-	Request.prototype.get = function (parameters) {
-		document.body.classList.add("loading");
+				source = source.replace(/\s{2,}/g, "");
+				source = source.replace(/\{\{(.*?)\}\}/g, "',$1,'");
+				source = source.split("{%").join("');");
+				source = source.split("%}").join("a.push('");
+				source = "var a=[];a.push('{}');return a.join('');".format(source);
 
-		this.xhr.open("GET", HB.endpoint.format(parameters), true);
-		this.xhr.setRequestHeader("Accept", "application/json");
-		this.xhr.send(null);
-	};
+				this.source = new Function(source);
+			}},
 
-	// 
-	Request.callback = function () {
-		if (this.status === 200) {
-			var data = JSON.parse(this.response);
-
-			HB.collections[data.handle] = new Collection(data);
-			HB.collections[data.handle].show(HB.router.route[1]);
-		} else {
-			location.hash = HB.home;
-		}
-
-		document.body.classList.remove("loading");
-	};
-
-	// 
-	HB.request = new Request();
+			// This returns a HTML string.
+			render: { value: function(data) {
+				return this.source.call(data);
+			}}
+		}),
+		extends: "template"
+	});
 
 	// HB.Collection
 	// -------------
 
-	// 
-	var Collection = HB.Collection = function (data) {
-		this.id = data.id;
-		this.handle = data.handle;
-		this.title = data.title;
-		this.type = data.type;
-		this.template = new Template(data.type);
+	// Same treatment for `HB.Collection`.
+	var Collection = HB.Collection = document.registerElement("hb-collection", {
+		prototype: clone(HTMLElement.prototype, {
 
-		this.blocks = data.blocks.map(function (data) {
-			return new Block(data);
-		});
+			// This method turns JSON into children.
+			load: { value: function(data) {
+				this.id = data.id;
+				this.handle = data.handle;
+				this.title = data.title;
+				this.type = data.type;
+				this.template = window[data.type];
 
-		this.sort(this.template.element.dataset.sort || "id");
-	};
+				this.blocks = data.blocks.map(function(data) {
+					return new Block(data);
+				});
 
-	// Returns a clone of the `Collection`.
-	Collection.prototype.clone = function () {
-		return Object.create(this);
-	};
+				if (this.template.dataset.sort !== undefined) {
+					this.sort(this.template.dataset.sort);
+				} else {
+					this.update();
+				}
+			}},
 
-	// Shows the `Collection` (or `Block` if `blockHandle` is specified).
-	Collection.prototype.show = function (blockHandle) {
-		var data = HB.collection = blockHandle ?
-				this.search("handle", blockHandle) : this,
+			// This getter/setter gets/sets the current shown block.
+			block: {
+				get: function() { return this._block; },
+				set: function(block) {
+					this._block = block;
 
-			title = this.title,
-			template = this.template;
+					if (this.blocks !== undefined) {
+						this.update();
+					}
+				}
+			},
 
-		if (blockHandle) {
-			if (data.blocks.length === 0) {
-				return location.hash = "#!/{}".format(this.handle);
-			}
+			// Sorts `this.blocks` by `by` and updates the collection.
+			// Uses `block.reduce`, and if `by` starts with a `-`, guess what?
+			sort: { value: function(by) {
+				var order = by[0] === "-" ?
+					(by = by.substr(1), -1) : 1;
 
-			title = data.blocks[0].title;
-			template = data.blocks[0].template;
-		}
+				this.blocks.sort(function (a, b) {
+					a = a.reduce(by);
+					b = b.reduce(by);
 
-		while (HB.root.firstChild) {
-			HB.root.removeChild(HB.root.firstChild);
-		}
+					return (a < b ? -1 : a > b ? 1 : 0) * order;
+				});
 
-		HB.root.appendChild(template.render(HB.root, data));
+				this.update();
+			}},
 
-		document.body.classList.remove(lastType);
-		document.body.classList.add(lastType = template.type);
+			// This returns a clone of the collection with found `this.blocks`.
+			// Uses `block.reduce`.
+			search: { value: function (key, value) {
+				var data = clone(this);
 
-		document.title = HB.title.spec.format(HB.title.text, title);
-	};
+				data.blocks = data.blocks.filter(function (block) {
+					return block.reduce(key) === value;
+				});
 
-	// This returns a clone of the `Collection` with found `Collection.blocks`.
-	Collection.prototype.search = function (key, value) {
-		var data = this.clone();
+				return data;
+			}},
 
-		data.blocks = data.blocks.filter(function (block) {
-			return block.reduce(key) === value;
-		});
+			// Updates the collection.
+			update: { value: function() {
+				var data = HB.collection = this._block === undefined ?
+					this : this.search("handle", this._block);
 
-		return data;
-	};
+				var detail = {
+					title: this.title,
+					type: this.type,
+					template: this.template
+				};
 
-	// Sorts the `Collection.blocks` and returns a clone of the `Collection`.
-	Collection.prototype.sort = function (by) {
-		var data = this.clone(),
-			order = 1;
+				if (this._block !== undefined) {
+					if (data.blocks.length === 0) {
+						return (location.hash = "#!/" + this.handle);
+					}
 
-		if (by[0] === "-") {
-			by = by.substring(1);
-			order = -1;
-		}
+					detail.title = data.blocks[0].title;
+					detail.type = data.blocks[0].type;
+					detail.template = data.blocks[0].template;
+				}
 
-		data.blocks.sort(function (a, b) {
-			a = a.reduce(by);
-			b = b.reduce(by);
+				if (detail.template === undefined) {
+					return console.error("Template #{} is not defined".format(detail.type));
+				}
 
-			return (a < b ? -1 : a > b ? 1 : 0) * order;
-		});
+				while (this.firstChild) {
+					this.removeChild(this.firstChild);
+				}
 
-		return data;
-	};
+				this.insertAdjacentHTML("beforeend", detail.template.render(data));
 
-	// Variable to hold last used `template.type`.
-	var lastType;
+				// Fires the event `update` when the collection updates.
+				this.dispatchEvent(new CustomEvent("update", { detail: detail }));
+			}}
+		})
+	});
 
 	// HB.Block
 	// --------
 
-	// 
-	var Block = HB.Block = function (data) {
-		for (var item in data) {
-			this[item] = data[item];
+	var Block = HB.Block = klass({
+
+		// Not much to tell...
+		constructor: function Block(data) {
+			for (var key in data) {
+				this[key] = data[key];
+			}
+
+			this.time = new Date(this.time);
+			this.template = window[this.type];
+		},
+
+		// Returns the value of a property. Like `attributes.example`.
+		reduce: function(to) {
+			var find = to.split("."),
+				result = this[find[0]];
+
+			if (find[1] !== undefined) {
+				for (var i = 1; i < find.length; i++) {
+					result = result[find[i]];
+				}
+			}
+
+			return result;
 		}
+	});
 
-		this.time = new Date(data.time);
-		this.template = new Template(data.type);
-	};
+	// Router
+	// ------
 
-	// Returns the value of a property.
-	Block.prototype.reduce = function (to) {
-		var find = to.split("."),
-			result = this[find[0]];
+	var Router = HB.Router = klass({
 
-		if (find[1] !== undefined) {
-			for (var i = 1; i < find.length; i++) {
-				result = result[find[i]];
+		// *Constructor* sets up a listener for hash changes.
+		constructor: function Router() {
+			window.addEventListener("hashchange", this.match.bind(this), false);
+		},
+
+		// Adds a `route` — with corresponding `callback` — to the router.
+		add$hidden: function(route, callback) {
+			this[route] = callback;
+			this[route].match = new RegExp(route.replace(/:\w+/g, "([\\w-]+)"));
+		},
+
+		// This gets called when `location.hash` changes,
+		// and tries to do something with the defined routes.
+		match$hidden: function() {
+			var fallback = true;
+
+			for (var i in this) {
+				if (i === "fallback") {
+					continue;
+				}
+
+				var matches = location.hash.match(this[i].match);
+
+				if (matches !== null) {
+					matches.shift();
+					this[i].apply(this, matches);
+
+					fallback = false;
+				}
+			}
+
+			if (fallback && this.fallback !== undefined) {
+				this.fallback();
 			}
 		}
+	});
 
-		return result;
-	};
+	// Add the `HB.Router` *class* to the top-level namespace.
+	HB.router = new Router();
+
+	// Request
+	// -------
+
+	var Request = HB.Request = klass({
+
+		// Sets up `XMLHttpRequest`.
+		constructor: function Request(endpoint) {
+			this.endpoint = endpoint;
+
+			this.xhr = new XMLHttpRequest();
+			this.xhr.addEventListener("load", this.load.bind(this), false);
+		},
+
+		// GET JSON from `this.endpoint` with specified `props`.
+		// (With `handle` being the most common)
+		// Calls `props.success` if all good, else `props.error`.
+		get: function(props) {
+			this.success = props.success;
+			this.error = props.error;
+
+			this.xhr.open("GET", this.endpoint.format(props), true);
+			this.xhr.setRequestHeader("Accept", "application/json");
+			this.xhr.send(null);
+
+			document.body.classList.add("loading");
+		},
+
+		// Response to JSON.
+		load: function() {
+			var data = JSON.parse(this.xhr.response);
+
+			if (this.xhr.status === 200) {
+				this.success(data);
+			} else if (this.error !== undefined) {
+				this.error(data);
+			}
+
+			document.body.classList.remove("loading");
+		}
+	});
 
 	// Helpers
 	// -------
 
 	// Formats a string (`:param` or `{n}` and/or `{}`).
-	String.prototype.format = function (data) {
+	String.prototype.format = function(data) {
 		var i = 0;
 
 		if (typeof data !== "object") {
-			// `Array.apply` doesn't work with arrays that consist of a single number.
+			// `Array.apply` doesn't work on *arrays* with a single number.
 			data = [].slice.call(arguments);
 		}
 
-		return this.replace(stringMatcher, function (undefined, $1, $2) {
+		return this.replace(/:(\w+)|\{([0-9])?\}/g, function(undefined, $1, $2) {
 			return data[$1 || $2 || i++];
 		});
 	};
 
-	// Cached regex to match part of string.
-	var stringMatcher = /:(\w+)|\{([0-9])?\}/g;
-
 	// It's kinda like `date` in PHP.
-	Date.prototype.format = function (spec) {
-		var ord = Date.ordinals,
-
-			date = this.getDate(),
+	Date.prototype.format = function(spec) {
+		var date = this.getDate(),
 			day = this.getDay(),
 			month = this.getMonth(),
 			year = this.getFullYear(),
 			hours = this.getHours(),
 			twelve = hours % 12 || 12,
 			minutes = this.getMinutes(),
-			seconds = this.getSeconds(),
+			seconds = this.getSeconds();
 
-			options = {
-				d: date < 10 ? "0" + date : date,
-				D: Date.days[day].substr(0, 3),
-				j: date,
-				l: Date.days[day],
-				N: day || 7,
-				S: date > 3 && date <= 20 ? ord[0] : (ord[date % 10] || ord[0]),
-				w: day,
-				F: Date.months[month],
-				m: month < 10 ? "0" + (month + 1) : (month + 1),
-				M: Date.months[month].substr(0, 3),
-				n: month + 1,
-				t: new Date(year, month + 1, 0).getDate(),
-				Y: year,
-				y: ("" + year).substr(2, 2),
-				a: hours < 12 ? "am" : "pm",
-				A: hours < 12 ? "AM" : "PM",
-				g: twelve,
-				G: hours,
-				h: twelve < 10 ? "0" + twelve : twelve,
-				H: hours < 10 ? "0" + hours : hours,
-				i: minutes < 10 ? "0" + minutes : minutes,
-				s: seconds < 10 ? "0" + seconds : seconds
-			};
+		var options = {
+			d: date < 10 ? "0" + date : date,
+			D: days[day].substr(0, 3),
+			j: date,
+			l: days[day],
+			N: day || 7,
+			S: date > 3 && date <= 20 ? ords[0] : (ords[date % 10] || ords[0]),
+			w: day,
+			F: months[month],
+			m: month < 10 ? "0" + (month + 1) : (month + 1),
+			M: months[month].substr(0, 3),
+			n: month + 1,
+			t: new Date(year, month + 1, 0).getDate(),
+			Y: year,
+			y: ("" + year).substr(2, 2),
+			a: hours < 12 ? "am" : "pm",
+			A: hours < 12 ? "AM" : "PM",
+			g: twelve,
+			G: hours,
+			h: twelve < 10 ? "0" + twelve : twelve,
+			H: hours < 10 ? "0" + hours : hours,
+			i: minutes < 10 ? "0" + minutes : minutes,
+			s: seconds < 10 ? "0" + seconds : seconds
+		};
 
-		return spec.replace(dateMatcher, function ($0, $1) {
+		return spec.replace(/\\?([a-z])/gi, function($0, $1) {
 			return options[$0] !== undefined ? options[$0] : $1;
 		});
 	};
 
 	// Text strings.
-	Date.ordinals = ["th", "st", "nd", "rd"];
+	var ords = Date.ordinals = ["th", "st", "nd", "rd"];
 
-	Date.days = [
+	var days = Date.days = [
 		"Sunday",
 		"Monday",
 		"Tuesday",
@@ -350,7 +524,7 @@
 		"Saturday"
 	];
 
-	Date.months = [
+	var months = Date.months = [
 		"January",
 		"February",
 		"March",
@@ -365,25 +539,34 @@
 		"December"
 	];
 
-	// Cached regex to match part of string.
-	var dateMatcher = /\\?([a-z])/gi;
-
 	// HTML5 `dataset` polyfill for IE10.
 	if (document.documentElement.dataset === undefined) {
-		Object.defineProperty(Element.prototype, "dataset", {
+		define(Element.prototype, "dataset", {
 			get: function () {
-				var dataset = {},
-					attributes = Array.apply(null, this.attributes);
+				var dataset = {};
 
-				attributes.forEach(function (attribute) {
-					var name = attribute.name.split("-");
+				Array.apply(null, this.attributes).forEach(function (a) {
+					var name = a.name.split("-");
 
 					if (name[1] !== undefined && name[0] === "data") {
-						dataset[name[1]] = attribute.value;
+						dataset[name[1]] = a.value;
 					}
 				});
 
 				return dataset;
+			}
+		});
+	}
+
+	// `CustomEvent` polyfill.
+	if (isIE) {
+		window.CustomEvent = Event.extend({
+			constructor: function CustomEvent(type, props) {
+				var event = document.createEvent("CustomEvent");
+
+				event.initCustomEvent(type, false, false, props.detail);
+
+				return event;
 			}
 		});
 	}
