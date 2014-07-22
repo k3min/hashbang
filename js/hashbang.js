@@ -13,7 +13,9 @@
 		location = window.location,
 
 		define = Object.defineProperty,
-		clone = Object.create;
+		clone = Object.create,
+
+		isIE = /MSIE 10/.test(navigator.appVersion);
 
 	// Top-level namespace.
 	var HB = window.HB = {
@@ -28,49 +30,61 @@
 		collections: {},
 
 		// Call this to fire up Hashbang.
-		main: function() {
+		main: function(home, root) {
 			this.request = new Request(this.endpoint);
 
-			this.home = document.links[0].hash;
-			this.root = window.root;
+			// Hashbang will go back to this hash is something goes wrong.
+			this.home = home || document.links[0].hash;
 
+			// Element where the magic happens.
+			this.root = root || window.root;
+
+			// Object to hold some title properties.
 			this.title = {
 				text: document.title,
 				spec: document.getElementsByTagName("title")[0].dataset.spec
 			};
 
+			// Set up fallback in case `HB.router` doesn't know what to do.
 			this.router.fallback = this.fallback;
 
-			this.router.add("/:collection", function(collection) {
-				if (HB.collections[collection] === undefined) {
-					HB.collections[collection] = new Collection();
+			this.router.add("/:collection", function(c) {
+				if (HB.collections[c] === undefined) {
+					HB.collections[c] = new Collection();
+					HB.collections[c].addEventListener("update", HB.update, false);
 
 					HB.request.get({
-						handle: collection,
+						handle: c,
 						success: function(data) {
-							HB.collections[collection].load(data);
+							HB.collections[c].load(data);
 						},
 						error: function() {
-							delete HB.collections[collection];
+							delete HB.collections[c];
 							HB.fallback();
 						}
 					});
 				} else {
-					HB.collections[collection].block = undefined;
+					// TODO: Fix this ugly hack.
+					HB.collections[c].block = undefined;
 				}
 
 				while (HB.root.firstChild) {
 					HB.root.removeChild(HB.root.firstChild);
 				}
 
-				HB.root.appendChild(HB.collections[collection]);
+				HB.root.appendChild(HB.collections[c]);
 			});
 
-			this.router.add("/:collection/:block", function(collection, block) {
-				HB.collections[collection].block = block;
+			this.router.add("/:collection/:block", function(c, b) {
+				HB.collections[c].block = b;
 			});
 
 			this.router.match();
+		},
+
+		// This gets called when a collection updates.
+		update: function(e) {
+			document.title = HB.title.spec.format(HB.title.text, e.detail.title);
 		},
 
 		// Function to call if collection is not found.
@@ -132,7 +146,7 @@
 
 		// Function to make a custom element custom.
 		var register = function(e, p) {
-			if (/MSIE 10/.test(navigator.appVersion)) {
+			if (isIE) {
 				Array.apply(null, Object.getOwnPropertyNames(p)).forEach(function(n) {
 					if (n !== "constructor") {
 						define(e, n, { value: p[n] });
@@ -179,6 +193,8 @@
 				});
 			}
 		}, false);
+
+		// TODO: `MutationObserver` here.
 	}
 
 	// HB.Template
@@ -246,7 +262,7 @@
 
 			// This getter/setter gets/sets the current shown block.
 			block: {
-				get: function() { return this.currentBlock; },
+				get: function() { return this._block; },
 				set: function(block) {
 					this._block = block;
 
@@ -273,6 +289,7 @@
 			}},
 
 			// This returns a clone of the collection with found `this.blocks`.
+			// Uses `block.reduce`.
 			search: { value: function (key, value) {
 				var data = clone(this);
 
@@ -288,29 +305,34 @@
 				var data = HB.collection = this._block === undefined ?
 					this : this.search("handle", this._block);
 
-				var title = this.title,
-					type = this.type,
-					template = this.template;
+				var detail = {
+					title: this.title,
+					type: this.type,
+					template: this.template
+				};
 
 				if (this._block !== undefined) {
 					if (data.blocks.length === 0) {
 						return (location.hash = "#!/" + this.handle);
 					}
 
-					title = data.blocks[0].title;
-					type = data.blocks[0].type;
-					template = data.blocks[0].template;
+					detail.title = data.blocks[0].title;
+					detail.type = data.blocks[0].type;
+					detail.template = data.blocks[0].template;
 				}
 
-				if (template === undefined) {
-					return console.error("Template '{}' is not defined".format(type));
+				if (detail.template === undefined) {
+					return console.error("Template #{} is not defined".format(detail.type));
 				}
 
 				while (this.firstChild) {
 					this.removeChild(this.firstChild);
 				}
 
-				this.insertAdjacentHTML("beforeend", template.render(data));
+				this.insertAdjacentHTML("beforeend", detail.template.render(data));
+
+				// Fires the event `update` when the collection updates.
+				this.dispatchEvent(new CustomEvent("update", { detail: detail }));
 			}}
 		})
 	});
@@ -358,7 +380,7 @@
 		// Adds a `route` — with corresponding `callback` — to the router.
 		add$hidden: function(route, callback) {
 			this[route] = callback;
-			this[route].match = new RegExp(route.replace(/:\w+/g, "(\\w+)"));
+			this[route].match = new RegExp(route.replace(/:\w+/g, "([\\w-]+)"));
 		},
 
 		// This gets called when `location.hash` changes,
@@ -404,6 +426,7 @@
 		},
 
 		// GET JSON from `this.endpoint` with specified `props`.
+		// (With `handle` being the most common)
 		// Calls `props.success` if all good, else `props.error`.
 		get: function(props) {
 			this.success = props.success;
@@ -531,6 +554,19 @@
 				});
 
 				return dataset;
+			}
+		});
+	}
+
+	// `CustomEvent` polyfill.
+	if (isIE) {
+		window.CustomEvent = Event.extend({
+			constructor: function CustomEvent(type, props) {
+				var event = document.createEvent("CustomEvent");
+
+				event.initCustomEvent(type, false, false, props.detail);
+
+				return event;
 			}
 		});
 	}
