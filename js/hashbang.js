@@ -1,9 +1,10 @@
-//     Hashbang 2.0.0
-//     Copyright (c) 2014 Kevin Pancake
-//     Hashbang may be freely distributed under the MIT license.
+// 	Hashbang 2.0.0
+// 	Copyright (c) 2014 Kevin Pancake
+// 	Hashbang may be freely distributed under the MIT license.
 
 
 (function (window) {
+	"use strict";
 
 	// Setup
 	// -----
@@ -15,10 +16,10 @@
 		define = Object.defineProperty,
 		clone = Object.create;
 
-	// Test to check if Trident (IE).
+	// Test to check if Trident (IE layout engine).
 	var isTrident = function(n) {
 		var app = navigator.appVersion;
-		return /Trident/.test(app) && app.match(/Trident\/(\d)/)[1] <= n;
+		return /Trident/.test(app) && app.match(/Trident\/([0-9])/)[1] <= n;
 	};
 
 	// Top-level namespace.
@@ -88,8 +89,11 @@
 		// This gets called when a collection updates.
 		update: function (event) {
 
+			// Save some bytes...
+			var detail = event.detail;
+
 			// Set the title.
-			document.title = HB.title.spec.format(HB.title.text, event.detail.title);
+			document.title = HB.title.spec.format(HB.title.text, detail.title);
 
 			// Remove existing children.
 			while (HB.root.firstChild) {
@@ -97,7 +101,14 @@
 			}
 
 			// Append current collection to `HB.root`.
-			HB.root.appendChild(HB.collections[event.detail.handle]);
+			HB.root.appendChild(HB.collections[detail.handle]);
+
+			// Update body classes to match current collection.
+			document.body.classList.remove(lastHandle, lastType);
+			document.body.classList.add(
+				lastHandle = detail.handle,
+				lastType = detail.type
+			);
 		},
 
 		// Function to call if collection is not found.
@@ -105,6 +116,9 @@
 			location.hash = HB.home;
 		}
 	};
+
+	// Variable to hold last used `collection.handle` and `collection.type`.
+	var lastHandle, lastType;
 
 	// klass
 	// -----
@@ -115,27 +129,32 @@
 		var base = methods.constructor;
 
 		// If extending...
-		if (this.prototype !== undefined) {
-			base.prototype = clone(this.prototype, {
-				parent: { value: this.prototype }
+		if (this !== undefined) {
+			var parent = this.prototype;
+
+			base.prototype = clone(parent, {
+				parent: {
+					get: function () { return parent; }
+				}
 			});
 		}
 
 		for (var i in methods) {
-			var property = i.split("$")[0],
+			var method = methods[i],
+				property = i.split("$")[0],
 				object = /\$static/.test(i) ? base : base.prototype,
 				show = !/\$hidden|constructor/.test(i);
 
-			if (methods[i].get !== undefined || methods[i].set !== undefined) {
+			if (method.get !== undefined || method.set !== undefined) {
 				define(object, property, {
 					enumerable: show,
-					get: methods[i].get,
-					set: methods[i].set
+					get: method.get,
+					set: method.set
 				});
 			} else {
 				define(object, property, {
 					enumerable: show,
-					value: methods[i]
+					value: method
 				});
 			}
 		}
@@ -158,15 +177,13 @@
 		var customElements = {};
 
 		// Function to make a custom element custom.
-		var register = function (e, p) {
+		var register = function (element, p) {
 			if (isTrident(6)) {
 				Array.apply(null, Object.getOwnPropertyNames(p)).forEach(function (n) {
-					if (n !== "constructor") {
-						define(e, n, { value: p[n] });
-					}
+					define(element, n, Object.getOwnPropertyDescriptor(p, n));
 				});
 			} else {
-				e.__proto__ = p;
+				element.__proto__ = p;
 			}
 		};
 
@@ -197,6 +214,7 @@
 				var q = customElements[i]["extends"] ?
 					"{}[is={}]".format(customElements[i]["extends"], i) : i;
 
+				// TODO: `Don't make functions within a loop`.
 				Array.apply(null, document.querySelectorAll(q)).forEach(function (e) {
 					register(e, customElements[i].prototype);
 
@@ -244,6 +262,8 @@
 				return this.source.call(data);
 			}}
 		}),
+
+		// *Base* element.
 		extends: "template"
 	});
 
@@ -276,8 +296,8 @@
 			// This getter/setter gets/sets the current shown block.
 			block: {
 				get: function () { return this._block; },
-				set: function (block) {
-					this._block = block;
+				set: function (value) {
+					this._block = value;
 
 					if (this.blocks !== undefined) {
 						this.update();
@@ -403,7 +423,7 @@
 		// Adds the `route` — with corresponding `callback` — to the router.
 		add$hidden: function (route, callback) {
 			this[route] = callback;
-			this[route].match = new RegExp(route.replace(/:\w+/g, "([\\w-]+)"));
+			this[route].match = new RegExp(route.replace(/:[a-z]+/g, "([a-z0-9-]+)"));
 		},
 
 		// This gets called when `location.hash` changes,
@@ -452,23 +472,23 @@
 		// (With `handle` being the most common)
 		// Calls `props.success` if all good, else `props.error`.
 		get: function (props) {
+			document.body.classList.add("loading");
+
 			this.success = props.success;
 			this.error = props.error;
 
 			this.xhr.open("GET", this.endpoint.format(props), true);
 			this.xhr.setRequestHeader("Accept", "application/json");
 			this.xhr.send(null);
-
-			document.body.classList.add("loading");
 		},
 
 		// Response to JSON.
 		load: function () {
 			var data = JSON.parse(this.xhr.response);
 
-			if (this.xhr.status === 200) {
+			if (this.xhr.status === 200 && typeof this.success === "function") {
 				this.success(data);
-			} else if (this.error !== undefined) {
+			} else if (typeof this.error === "function") {
 				this.error(data);
 			}
 
@@ -488,7 +508,7 @@
 			data = [].slice.call(arguments);
 		}
 
-		return this.replace(/:(\w+)|\{([0-9])?\}/g, function (undefined, $1, $2) {
+		return this.replace(/:([a-z]+)|\{([0-9])?\}/g, function (undefined, $1, $2) {
 			return data[$1 || $2 || i++];
 		});
 	};
