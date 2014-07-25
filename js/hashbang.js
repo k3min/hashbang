@@ -1,4 +1,4 @@
-// 	Hashbang 2.0.0
+// 	Hashbang 2.0.1
 // 	Copyright (c) 2014 Kevin Pancake
 // 	Hashbang may be freely distributed under the MIT license.
 
@@ -17,7 +17,7 @@
 		clone = Object.create;
 
 	// Test to check if Trident (IE layout engine).
-	var isTrident = function(n) {
+	var isTrident = function (n) {
 		var app = navigator.appVersion;
 		return /Trident/.test(app) && app.match(/Trident\/([0-9])/)[1] <= n;
 	};
@@ -26,7 +26,7 @@
 	var HB = window.HB = {
 
 		// Current version.
-		version: "2.0.0",
+		version: "2.0.1",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -103,12 +103,13 @@
 			// Append current collection to `HB.root`.
 			HB.root.appendChild(HB.collections[detail.handle]);
 
-			// Update body classes to match current collection.
-			document.body.classList.remove(lastHandle, lastType);
-			document.body.classList.add(
-				lastHandle = detail.handle,
-				lastType = detail.type
-			);
+			// Update body class to match current `collection.handle`.
+			document.body.classList.remove(lastHandle);
+			document.body.classList.add(lastHandle = detail.handle);
+
+			// Update body class to match current `collection.type`.
+			document.body.classList.remove(lastType);
+			document.body.classList.add(lastType = detail.type);
 		},
 
 		// Function to call if collection is not found.
@@ -242,24 +243,24 @@
 
 	// Make the `HB.Template` *class* a custom element for ease and awesomeness.
 	HB.Template = document.registerElement("hb-template", {
-		prototype: clone(window.HTMLTemplateElement.prototype, {
+		prototype: clone(HTMLTemplateElement.prototype, {
 
-			// *Constructor*.
+			// Resig modified template function (no `with` block) `+=`.
 			attachedCallback: { value: function () {
 				var source = this.innerHTML;
 
 				source = source.replace(/\s{2,}/g, "");
-				source = source.replace(/\{\{(.*?)\}\}/g, "',$1,'");
-				source = source.split("{%").join("');");
-				source = source.split("%}").join("a.push('");
-				source = "var a=[];a.push('{}');return a.join('');".format(source);
+				source = source.replace(/\{\{=(.*?)\}\}/g, "';html+=$1;html+='");
+				source = source.split("{{").join("';");
+				source = source.split("}}").join("html+='");
+				source = "var html='" + source + "';return html;";
 
-				this.source = new Function(source);
+				this.source = new Function("collection", source);
 			}},
 
 			// This returns a HTML string.
 			render: { value: function (data) {
-				return this.source.call(data);
+				return this.source(data);
 			}}
 		}),
 
@@ -484,7 +485,7 @@
 
 		// Response to JSON.
 		load: function () {
-			var data = JSON.parse(this.xhr.response);
+			var data = JSON.parse(this.xhr.responseText);
 
 			if (this.xhr.status === 200 && typeof this.success === "function") {
 				this.success(data);
@@ -584,7 +585,7 @@
 
 	// `dataset` polyfill.
 	if (document.documentElement.dataset === undefined) {
-		define(Element.prototype, "dataset", {
+		define(HTMLElement.prototype, "dataset", {
 			get: function () {
 				var dataset = {};
 

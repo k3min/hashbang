@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title data-spec="{1} &mdash; {0}">Website</title>
+		<title data-spec="{1} — {0}">Website</title>
 		<script src="js/hashbang.min.js"></script>
 	</head>
 	<body>
@@ -18,13 +18,13 @@
 		</header>
 		<main id="root"></main>
 		<template id="default" data-sort="-time" is="hb-template">
-			<h1>{{ this.title }}</h1>
-			{% this.blocks.forEach(function (block) { %}
+			<h1>{{= collection.title }}</h1>
+			{{ collection.blocks.forEach(function (block) { }}
 			<article>
-				<h1>{{ block.title }}<h1>
-				{{ block.content }}
+				<h1>{{= block.title }}<h1>
+				{{= block.content }}
 			</article>
-			{% }); %}
+			{{ }); }}
 		</template>
 		<script>
 			HB.main();

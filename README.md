@@ -20,6 +20,15 @@ Installation
 4. ?
 5. PROFIT
 
+Support
+-------
+
+- Chrome 8+
+- Safari 5.1+
+- Firefox 8+
+- Opera 12+
+- Internet Explorer 10+
+
 Todo
 ----
 - Documentation

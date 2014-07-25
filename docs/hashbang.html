@@ -27,7 +27,7 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <pre><code>Hashbang <span class="hljs-number">2.0</span><span class="hljs-number">.0</span>
+              <pre><code>Hashbang <span class="hljs-number">2.0</span><span class="hljs-number">.1</span>
 Copyright (c) <span class="hljs-number">2014</span> Kevin Pancake
 Hashbang may be freely distributed under the MIT license.
 </code></pre>
@@ -95,7 +95,7 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> isTrident = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(n)</span> </span>{
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> isTrident = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(n)</span> </span>{
 		<span class="hljs-keyword">var</span> app = navigator.appVersion;
 		<span class="hljs-keyword">return</span> <span class="hljs-regexp">/Trident/</span>.test(app) &amp;&amp; app.match(<span class="hljs-regexp">/Trident\/([0-9])/</span>)[<span class="hljs-number">1</span>] &lt;= n;
 	};</pre></div></div>
@@ -128,7 +128,7 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		version: <span class="hljs-string">"2.0.0"</span>,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>		version: <span class="hljs-string">"2.0.1"</span>,</pre></div></div>
             
         </li>
         
@@ -419,16 +419,12 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
-              <p>Update body classes to match current collection.</p>
+              <p>Update body class to match current <code>collection.handle</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			<span class="hljs-built_in">document</span>.body.classList.remove(lastHandle, lastType);
-			<span class="hljs-built_in">document</span>.body.classList.add(
-				lastHandle = detail.handle,
-				lastType = detail.type
-			);
-		},</pre></div></div>
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-built_in">document</span>.body.classList.remove(lastHandle);
+			<span class="hljs-built_in">document</span>.body.classList.add(lastHandle = detail.handle);</pre></div></div>
             
         </li>
         
@@ -438,6 +434,23 @@ Hashbang may be freely distributed under the MIT license.
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Update body class to match current <code>collection.type</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-built_in">document</span>.body.classList.remove(lastType);
+			<span class="hljs-built_in">document</span>.body.classList.add(lastType = detail.type);
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>Function to call if collection is not found.</p>
 
@@ -451,11 +464,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-27">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>Variable to hold last used <code>collection.handle</code> and <code>collection.type</code>.</p>
 
@@ -466,26 +479,14 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-28">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
-              </div>
-              <h2 id="klass">klass</h2>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
-              
+              <h2 id="klass">klass</h2>
+
             </div>
             
         </li>
@@ -496,6 +497,18 @@ Hashbang may be freely distributed under the MIT license.
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <p>Create a new class. Add <code>$static</code> to a method name to make it <em>static</em>.
 <code>$hidden</code> makes it non-enumerable. You can even define getters and setters.</p>
@@ -508,11 +521,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-31">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p>If extending…</p>
 
@@ -554,11 +567,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-32">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <p>Extend an existing class. To access base <em>class</em> use <code>this.parent</code>.</p>
 
@@ -571,26 +584,14 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-33">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
-              </div>
-              <h2 id="document-registerelement">document.registerElement</h2>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
-              
+              <h2 id="document-registerelement">document.registerElement</h2>
+
             </div>
             
         </li>
@@ -602,11 +603,8 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
-              <p>This is just a polyfill.</p>
-
+              
             </div>
-            
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">document</span>.registerElement === <span class="hljs-literal">undefined</span>) {</pre></div></div>
             
         </li>
         
@@ -617,11 +615,11 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
-              <p>Here are custom elemens stored for convenience.</p>
+              <p>This is just a polyfill.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> customElements = {};</pre></div></div>
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">document</span>.registerElement === <span class="hljs-literal">undefined</span>) {</pre></div></div>
             
         </li>
         
@@ -631,6 +629,21 @@ Hashbang may be freely distributed under the MIT license.
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Here are custom elemens stored for convenience.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> customElements = {};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <p>Function to make a custom element custom.</p>
 
@@ -649,11 +662,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-38">
+        <li id="section-39">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-38">&#182;</a>
+                <a class="pilcrow" href="#section-39">&#182;</a>
               </div>
               <p>This is (almost) the same as the real deal.</p>
 
@@ -682,11 +695,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-39">
+        <li id="section-40">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-39">&#182;</a>
+                <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
               <p>Make existing custom elements custom.</p>
 
@@ -700,11 +713,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-40">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>TODO: <code>Don&#39;t make functions within a loop</code>.</p>
 
@@ -723,11 +736,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-41">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-41">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <p>TODO: <code>MutationObserver</code> here.</p>
 
@@ -738,26 +751,14 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-42">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-42">&#182;</a>
-              </div>
-              <h2 id="hb-template">HB.Template</h2>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
-              
+              <h2 id="hb-template">HB.Template</h2>
+
             </div>
             
         </li>
@@ -768,6 +769,18 @@ Hashbang may be freely distributed under the MIT license.
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <p><code>HTMLTemplateElement</code> polyfill.</p>
 
@@ -784,43 +797,18 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-45">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-45">&#182;</a>
-              </div>
-              <p>Make the <code>HB.Template</code> <em>class</em> a custom element for ease and awesomeness.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	HB.Template = <span class="hljs-built_in">document</span>.registerElement(<span class="hljs-string">"hb-template"</span>, {
-		prototype: clone(<span class="hljs-built_in">window</span>.HTMLTemplateElement.prototype, {</pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-46">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-46">&#182;</a>
               </div>
-              <p><em>Constructor</em>.</p>
+              <p>Make the <code>HB.Template</code> <em>class</em> a custom element for ease and awesomeness.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			attachedCallback: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
-				<span class="hljs-keyword">var</span> source = <span class="hljs-keyword">this</span>.innerHTML;
-
-				source = source.replace(<span class="hljs-regexp">/\s{2,}/g</span>, <span class="hljs-string">""</span>);
-				source = source.replace(<span class="hljs-regexp">/\{\{(.*?)\}\}/g</span>, <span class="hljs-string">"',$1,'"</span>);
-				source = source.split(<span class="hljs-string">"{%"</span>).join(<span class="hljs-string">"');"</span>);
-				source = source.split(<span class="hljs-string">"%}"</span>).join(<span class="hljs-string">"a.push('"</span>);
-				source = <span class="hljs-string">"var a=[];a.push('{}');return a.join('');"</span>.format(source);
-
-				<span class="hljs-keyword">this</span>.source = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Function</span>(source);
-			}},</pre></div></div>
+            <div class="content"><div class='highlight'><pre>	HB.Template = <span class="hljs-built_in">document</span>.registerElement(<span class="hljs-string">"hb-template"</span>, {
+		prototype: clone(HTMLTemplateElement.prototype, {</pre></div></div>
             
         </li>
         
@@ -831,14 +819,21 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-47">&#182;</a>
               </div>
-              <p>This returns a HTML string.</p>
+              <p>Resig modified template function (no <code>with</code> block) <code>+=</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			render: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
-				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.source.call(data);
-			}}
-		}),</pre></div></div>
+            <div class="content"><div class='highlight'><pre>			attachedCallback: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+				<span class="hljs-keyword">var</span> source = <span class="hljs-keyword">this</span>.innerHTML;
+
+				source = source.replace(<span class="hljs-regexp">/\s{2,}/g</span>, <span class="hljs-string">""</span>);
+				source = source.replace(<span class="hljs-regexp">/\{\{=(.*?)\}\}/g</span>, <span class="hljs-string">"';html+=$1;html+='"</span>);
+				source = source.split(<span class="hljs-string">"{{"</span>).join(<span class="hljs-string">"';"</span>);
+				source = source.split(<span class="hljs-string">"}}"</span>).join(<span class="hljs-string">"html+='"</span>);
+				source = <span class="hljs-string">"var html='"</span> + source + <span class="hljs-string">"';return html;"</span>;
+
+				<span class="hljs-keyword">this</span>.source = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Function</span>(<span class="hljs-string">"collection"</span>, source);
+			}},</pre></div></div>
             
         </li>
         
@@ -848,6 +843,24 @@ Hashbang may be freely distributed under the MIT license.
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <p>This returns a HTML string.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			render: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.source(data);
+			}}
+		}),</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-49">&#182;</a>
               </div>
               <p><em>Base</em> element.</p>
 
@@ -859,26 +872,14 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-49">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-49">&#182;</a>
-              </div>
-              <h2 id="hb-collection">HB.Collection</h2>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-50">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-50">&#182;</a>
               </div>
-              
+              <h2 id="hb-collection">HB.Collection</h2>
+
             </div>
             
         </li>
@@ -890,6 +891,18 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-51">&#182;</a>
               </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-52">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-52">&#182;</a>
+              </div>
               <p>Same treatment for <code>HB.Collection</code>.</p>
 
             </div>
@@ -900,11 +913,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-52">
+        <li id="section-53">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-52">&#182;</a>
+                <a class="pilcrow" href="#section-53">&#182;</a>
               </div>
               <p>This method turns JSON into children.</p>
 
@@ -931,11 +944,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-53">
+        <li id="section-54">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-53">&#182;</a>
+                <a class="pilcrow" href="#section-54">&#182;</a>
               </div>
               <p>This getter/setter gets/sets the current shown block.</p>
 
@@ -955,11 +968,11 @@ Hashbang may be freely distributed under the MIT license.
         </li>
         
         
-        <li id="section-54">
+        <li id="section-55">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-54">&#182;</a>
+                <a class="pilcrow" href="#section-55">&#182;</a>
               </div>
               <p>Sorts <code>this.blocks</code> by <code>by</code> and updates the collection.
 Uses <code>block.reduce</code>, and if <code>by</code> starts with a <code>-</code>, guess what?</p>
@@ -983,11 +996,11 @@ Uses <code>block.reduce</code>, and if <code>by</code> starts with a <code>-</co
         </li>
         
         
-        <li id="section-55">
+        <li id="section-56">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-55">&#182;</a>
+                <a class="pilcrow" href="#section-56">&#182;</a>
               </div>
               <p>This returns a clone of the collection with found <code>this.blocks</code>.
 Uses <code>block.reduce</code>.</p>
@@ -1007,11 +1020,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-56">
+        <li id="section-57">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-56">&#182;</a>
+                <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
               <p>Updates the collection.</p>
 
@@ -1022,11 +1035,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-57">
+        <li id="section-58">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-57">&#182;</a>
+                <a class="pilcrow" href="#section-58">&#182;</a>
               </div>
               <p>Figure out what to use as <code>data</code>.</p>
 
@@ -1038,11 +1051,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-58">
+        <li id="section-59">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-58">&#182;</a>
+                <a class="pilcrow" href="#section-59">&#182;</a>
               </div>
               <p>Object to give to the <code>update</code> event.</p>
 
@@ -1058,11 +1071,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-59">
+        <li id="section-60">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-59">&#182;</a>
+                <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
               <p>Check if <code>this.block</code> is defined so it can show <em>subpage</em>.</p>
 
@@ -1073,11 +1086,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-60">
+        <li id="section-61">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-60">&#182;</a>
+                <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
               <p>If so, but not found, go back to start.</p>
 
@@ -1095,11 +1108,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-61">
+        <li id="section-62">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-61">&#182;</a>
+                <a class="pilcrow" href="#section-62">&#182;</a>
               </div>
               <p>Halt if needed template isn’t defined.</p>
 
@@ -1112,11 +1125,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-62">
+        <li id="section-63">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-62">&#182;</a>
+                <a class="pilcrow" href="#section-63">&#182;</a>
               </div>
               <p>Remove existing children.</p>
 
@@ -1129,11 +1142,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-63">
+        <li id="section-64">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-63">&#182;</a>
+                <a class="pilcrow" href="#section-64">&#182;</a>
               </div>
               <p>Turn HTML generated by <code>template.render</code> into children.</p>
 
@@ -1144,11 +1157,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-64">
+        <li id="section-65">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-64">&#182;</a>
+                <a class="pilcrow" href="#section-65">&#182;</a>
               </div>
               <p>Fires the event <code>update</code> when the collection updates.</p>
 
@@ -1162,11 +1175,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-65">
+        <li id="section-66">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-65">&#182;</a>
+                <a class="pilcrow" href="#section-66">&#182;</a>
               </div>
               <h2 id="hb-block">HB.Block</h2>
 
@@ -1175,11 +1188,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-66">
+        <li id="section-67">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-66">&#182;</a>
+                <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               
             </div>
@@ -1190,11 +1203,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-67">
+        <li id="section-68">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-67">&#182;</a>
+                <a class="pilcrow" href="#section-68">&#182;</a>
               </div>
               <p>Not much to tell…</p>
 
@@ -1212,11 +1225,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-68">
+        <li id="section-69">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-68">&#182;</a>
+                <a class="pilcrow" href="#section-69">&#182;</a>
               </div>
               <p>Returns the value of a property. Like <code>attributes.example</code>.</p>
 
@@ -1239,11 +1252,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-69">
+        <li id="section-70">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-69">&#182;</a>
+                <a class="pilcrow" href="#section-70">&#182;</a>
               </div>
               <h2 id="router">Router</h2>
 
@@ -1252,11 +1265,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-70">
+        <li id="section-71">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-70">&#182;</a>
+                <a class="pilcrow" href="#section-71">&#182;</a>
               </div>
               
             </div>
@@ -1267,11 +1280,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-71">
+        <li id="section-72">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-71">&#182;</a>
+                <a class="pilcrow" href="#section-72">&#182;</a>
               </div>
               <p><em>Constructor</em> sets up a listener for hash changes.</p>
 
@@ -1284,11 +1297,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-72">
+        <li id="section-73">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-72">&#182;</a>
+                <a class="pilcrow" href="#section-73">&#182;</a>
               </div>
               <p>Adds the <code>route</code> — with corresponding <code>callback</code> — to the router.</p>
 
@@ -1302,11 +1315,11 @@ Uses <code>block.reduce</code>.</p>
         </li>
         
         
-        <li id="section-73">
+        <li id="section-74">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-73">&#182;</a>
+                <a class="pilcrow" href="#section-74">&#182;</a>
               </div>
               <p>This gets called when <code>location.hash</code> changes,
 and tries to do something with the defined routes.</p>
@@ -1340,11 +1353,11 @@ and tries to do something with the defined routes.</p>
         </li>
         
         
-        <li id="section-74">
+        <li id="section-75">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-74">&#182;</a>
+                <a class="pilcrow" href="#section-75">&#182;</a>
               </div>
               <p>Add the <code>HB.Router</code> <em>class</em> to the top-level namespace.</p>
 
@@ -1355,11 +1368,11 @@ and tries to do something with the defined routes.</p>
         </li>
         
         
-        <li id="section-75">
+        <li id="section-76">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-75">&#182;</a>
+                <a class="pilcrow" href="#section-76">&#182;</a>
               </div>
               <h2 id="request">Request</h2>
 
@@ -1368,11 +1381,11 @@ and tries to do something with the defined routes.</p>
         </li>
         
         
-        <li id="section-76">
+        <li id="section-77">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-76">&#182;</a>
+                <a class="pilcrow" href="#section-77">&#182;</a>
               </div>
               
             </div>
@@ -1383,11 +1396,11 @@ and tries to do something with the defined routes.</p>
         </li>
         
         
-        <li id="section-77">
+        <li id="section-78">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-77">&#182;</a>
+                <a class="pilcrow" href="#section-78">&#182;</a>
               </div>
               <p>Sets up <code>XMLHttpRequest</code>.</p>
 
@@ -1403,11 +1416,11 @@ and tries to do something with the defined routes.</p>
         </li>
         
         
-        <li id="section-78">
+        <li id="section-79">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-78">&#182;</a>
+                <a class="pilcrow" href="#section-79">&#182;</a>
               </div>
               <p>GET JSON from <code>this.endpoint</code> with specified <code>props</code>.
 (With <code>handle</code> being the most common)
@@ -1429,18 +1442,18 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-79">
+        <li id="section-80">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-79">&#182;</a>
+                <a class="pilcrow" href="#section-80">&#182;</a>
               </div>
               <p>Response to JSON.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>		load: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
-			<span class="hljs-keyword">var</span> data = <span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">this</span>.xhr.response);
+			<span class="hljs-keyword">var</span> data = <span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">this</span>.xhr.responseText);
 
 			<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.xhr.status === <span class="hljs-number">200</span> &amp;&amp; <span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.success === <span class="hljs-string">"function"</span>) {
 				<span class="hljs-keyword">this</span>.success(data);
@@ -1455,26 +1468,14 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-80">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-80">&#182;</a>
-              </div>
-              <h2 id="helpers">Helpers</h2>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-81">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-81">&#182;</a>
               </div>
-              
+              <h2 id="helpers">Helpers</h2>
+
             </div>
             
         </li>
@@ -1485,6 +1486,18 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-82">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-83">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-83">&#182;</a>
               </div>
               <p>Formats a string (<code>:param</code> or <code>{n}</code> and/or <code>{}</code>).</p>
 
@@ -1498,11 +1511,11 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-83">
+        <li id="section-84">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-83">&#182;</a>
+                <a class="pilcrow" href="#section-84">&#182;</a>
               </div>
               <p><code>Array.apply</code> doesn’t work on <em>arrays</em> with a single number.</p>
 
@@ -1519,11 +1532,11 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-84">
+        <li id="section-85">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-84">&#182;</a>
+                <a class="pilcrow" href="#section-85">&#182;</a>
               </div>
               <p>It’s kinda like <code>date</code> in PHP.</p>
 
@@ -1572,11 +1585,11 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-85">
+        <li id="section-86">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-85">&#182;</a>
+                <a class="pilcrow" href="#section-86">&#182;</a>
               </div>
               <p>Text strings.</p>
 
@@ -1612,18 +1625,18 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-86">
+        <li id="section-87">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-86">&#182;</a>
+                <a class="pilcrow" href="#section-87">&#182;</a>
               </div>
               <p><code>dataset</code> polyfill.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">document</span>.documentElement.dataset === <span class="hljs-literal">undefined</span>) {
-		define(Element.prototype, <span class="hljs-string">"dataset"</span>, {
+		define(HTMLElement.prototype, <span class="hljs-string">"dataset"</span>, {
 			get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
 				<span class="hljs-keyword">var</span> dataset = {};
 
@@ -1643,11 +1656,11 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
         </li>
         
         
-        <li id="section-87">
+        <li id="section-88">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-87">&#182;</a>
+                <a class="pilcrow" href="#section-88">&#182;</a>
               </div>
               <p><code>CustomEvent</code> polyfill.</p>
 
