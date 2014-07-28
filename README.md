@@ -15,7 +15,7 @@ Installation
 
 1. Create a database
 2. Create database tables using the included **hashbang.sql** file
-2. Edit [line #2](https://github.com/k3min/hashbang/blob/master/api.php#L2) of **api.php**
+2. Edit [line #2, #3 and #4](https://github.com/k3min/hashbang/blob/master/api.php#L2) of **api.php**
 3. Upload **index.html**, **js/hashbang.min.js**, **api.php** and **.htaccess** to your webserver
 4. ?
 5. PROFIT

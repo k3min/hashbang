@@ -38,25 +38,25 @@
 		main: function (home, root) {
 
 			// Handles HTTP requests.
-			this.request = new Request(this.endpoint);
+			HB.request = new Request(HB.endpoint);
 
 			// Hashbang will go back to this hash is something goes wrong.
-			this.home = home || document.links[0].hash;
+			HB.home = home || document.links[0].hash;
 
 			// Element where the magic happens.
-			this.root = root || window.root;
+			HB.root = root || window.root;
 
 			// Object to hold some title properties.
-			this.title = {
+			HB.title = {
 				text: document.title,
 				spec: document.getElementsByTagName("title")[0].dataset.spec
 			};
 
 			// Set up fallback in case `HB.router` doesn't know what to do.
-			this.router.fallback = this.fallback;
+			HB.router.fallback = HB.fallback;
 
 			// Main route.
-			this.router.add("/:collection", function (c) {
+			HB.router.add("/:collection", function (c) {
 				if (HB.collections[c] === undefined) {
 					HB.collections[c] = new Collection();
 					HB.collections[c].addEventListener("update", HB.update, false);
@@ -78,38 +78,41 @@
 			});
 
 			// Route for *subpages*.
-			this.router.add("/:collection/:block", function (c, b) {
+			HB.router.add("/:collection/:block", function (c, b) {
 				HB.collections[c].block = b;
 			});
 
 			// Match routes for initial location.
-			this.router.match();
+			HB.router.match();
 		},
 
 		// This gets called when a collection updates.
 		update: function (event) {
 
 			// Save some bytes...
-			var detail = event.detail;
+			var detail = event.detail,
+				title = HB.title,
+				root = HB.root,
+				body = document.body.classList;
 
 			// Set the title.
-			document.title = HB.title.spec.format(HB.title.text, detail.title);
+			document.title = title.spec.format(title.text, detail.title);
 
 			// Remove existing children.
-			while (HB.root.firstChild) {
-				HB.root.removeChild(HB.root.firstChild);
+			while (root.firstChild) {
+				root.removeChild(root.firstChild);
 			}
 
 			// Append current collection to `HB.root`.
-			HB.root.appendChild(HB.collections[detail.handle]);
+			root.appendChild(HB.collections[detail.handle]);
 
 			// Update body class to match current `collection.handle`.
-			document.body.classList.remove(lastHandle);
-			document.body.classList.add(lastHandle = detail.handle);
+			body.remove(lastHandle);
+			body.add(lastHandle = detail.handle);
 
 			// Update body class to match current `collection.type`.
-			document.body.classList.remove(lastType);
-			document.body.classList.add(lastType = detail.type);
+			body.remove(lastType);
+			body.add(lastType = detail.type);
 		},
 
 		// Function to call if collection is not found.
@@ -180,7 +183,7 @@
 		// Function to make a custom element custom.
 		var register = function (element, p) {
 			if (isTrident(6)) {
-				Array.apply(null, Object.getOwnPropertyNames(p)).forEach(function (n) {
+				Object.getOwnPropertyNames(p).forEach(function (n) {
 					define(element, n, Object.getOwnPropertyDescriptor(p, n));
 				});
 			} else {
@@ -212,17 +215,21 @@
 		// Make existing custom elements custom.
 		document.addEventListener("DOMContentLoaded", function () {
 			for (var i in customElements) {
-				var q = customElements[i]["extends"] ?
-					"{}[is={}]".format(customElements[i]["extends"], i) : i;
+				var e, x = customElements[i]["extends"];
 
-				// TODO: `Don't make functions within a loop`.
-				Array.apply(null, document.querySelectorAll(q)).forEach(function (e) {
-					register(e, customElements[i].prototype);
+				if (x !== undefined) {
+					e = document.querySelectorAll("{}[is={}]".format(x, i));
+				} else {
+					e = document.getElementsByTagName(i);
+				}
 
-					if (e.attachedCallback !== undefined) {
-						e.attachedCallback.call(e);
+				for (var j = 0; j < e.length; j++) {
+					register(e[j], customElements[i].prototype);
+
+					if (e[j].attachedCallback !== undefined) {
+						e[j].attachedCallback.call(e[j]);
 					}
-				});
+				}
 			}
 		}, false);
 
@@ -587,15 +594,16 @@
 	if (document.documentElement.dataset === undefined) {
 		define(HTMLElement.prototype, "dataset", {
 			get: function () {
-				var dataset = {};
+				var dataset = {},
+					attributes = this.attributes;
 
-				Array.apply(null, this.attributes).forEach(function (a) {
-					var name = a.name.split("-");
+				for (var i = 0; i < attributes.length; i++) {
+					var name = attributes[i].name.split("-");
 
 					if (name[1] !== undefined && name[0] === "data") {
-						dataset[name[1]] = a.value;
+						dataset[name[1]] = attributes[i].value;
 					}
-				});
+				}
 
 				return dataset;
 			}

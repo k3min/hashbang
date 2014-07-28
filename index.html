@@ -17,14 +17,24 @@
 			</nav>
 		</header>
 		<main id="root"></main>
-		<template id="default" data-sort="-time" is="hb-template">
-			<h1>{{= collection.title }}</h1>
+		<template id="default" is="hb-template">
 			{{ collection.blocks.forEach(function (block) { }}
 			<article>
-				<h1>{{= block.title }}<h1>
+				<h1>{{= block.title }}</h1>
 				{{= block.content }}
 			</article>
 			{{ }); }}
+		</template>
+		<template id="list" data-sort="-time" is="hb-template">
+			<h1>{{= collection.title }}</h1>
+			<ul>
+				{{ collection.blocks.forEach(function (block) { }}
+				<li>
+					<a href="{{= block.url }}">{{= block.title }}</a>
+					<time datetime="{{= block.time }}">{{= block.time.format("M. j, Y") }}</time>
+				</li>
+				{{ }); }}
+			</ul>
 		</template>
 		<script>
 			HB.main();
