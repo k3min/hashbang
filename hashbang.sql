@@ -16,6 +16,7 @@ CREATE TABLE collections (
   id tinyint(1) unsigned NOT NULL AUTO_INCREMENT,
   handle varchar(32) NOT NULL,
   title varchar(64) NOT NULL,
+  description varchar(128) NOT NULL,
   type varchar(16) NOT NULL DEFAULT 'default',
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

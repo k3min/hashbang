@@ -5,14 +5,7 @@
 
 	try {
 		$db = new PDO($dsn, $user, $password);
-	} catch (PDOException $e) {
-		$response = [
-			'status' => 500,
-			'message' => 'Internal Server Error'
-		];
-	}
 
-	if (isset($db)) {
 		$collections = $db->prepare('SELECT * FROM collections WHERE handle = ?');
 		$blocks = $db->prepare('SELECT * FROM blocks WHERE collectionId = ?');
 
@@ -37,6 +30,7 @@
 				'id' => 0 + $collection->id,
 				'handle' => $collection->handle,
 				'title' => $collection->title,
+				'description' => $collection->description,
 				'type' => $collection->type,
 				'status' => 200,
 				'message' => 'Success'
@@ -67,6 +61,11 @@
 				'message' => 'Not Found'
 			];
 		}
+	} catch (PDOException $e) {
+		$response = [
+			'status' => 500,
+			'message' => 'Internal Server Error'
+		];
 	}
 
 	header(sprintf('HTTP/1.1 %d %s', $response['status'], $response['message']));
