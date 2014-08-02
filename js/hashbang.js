@@ -152,15 +152,14 @@
 	// Create a new class. Add `$static` to a method name to make it *static*.
 	// `$hidden` makes it non-enumerable. You can even define getters/setters.
 	var klass = window.klass = function (methods) {
-		var base = methods.constructor;
+		var base = methods.constructor,
+			self = this && this.prototype || false;
 
 		// If extending...
-		if (this !== undefined) {
-			var parent = this.prototype;
-
-			base.prototype = clone(parent, {
+		if (self) {
+			base.prototype = clone(self, {
 				parent: {
-					get: function () { return parent; }
+					get: function () { return self; }
 				}
 			});
 		}

@@ -588,7 +588,8 @@ Hashbang may be freely distributed under the MIT license.
             </div>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> klass = <span class="hljs-built_in">window</span>.klass = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(methods)</span> </span>{
-		<span class="hljs-keyword">var</span> base = methods.constructor;</pre></div></div>
+		<span class="hljs-keyword">var</span> base = methods.constructor,
+			self = <span class="hljs-keyword">this</span> &amp;&amp; <span class="hljs-keyword">this</span>.prototype || <span class="hljs-literal">false</span>;</pre></div></div>
             
         </li>
         
@@ -603,12 +604,10 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> !== <span class="hljs-literal">undefined</span>) {
-			<span class="hljs-keyword">var</span> parent = <span class="hljs-keyword">this</span>.prototype;
-
-			base.prototype = clone(parent, {
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (self) {
+			base.prototype = clone(self, {
 				parent: {
-					get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ <span class="hljs-keyword">return</span> parent; }
+					get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ <span class="hljs-keyword">return</span> self; }
 				}
 			});
 		}
