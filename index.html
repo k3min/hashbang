@@ -31,7 +31,9 @@
 				{{ collection.blocks.forEach(function (block) { }}
 				<li>
 					<a href="{{= block.url }}">{{= block.title }}</a>
-					<time datetime="{{= block.time }}">{{= block.time.format("M. j, Y") }}</time>
+					<time datetime="{{= block.time }}">
+						{{= block.time.format("M. j, Y") }}
+					</time>
 				</li>
 				{{ }); }}
 			</ul>

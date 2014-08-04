@@ -154,7 +154,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>This holds all the requested collections.</p>
+              <p>This holds all the requested <strong>collections</strong>.</p>
 
             </div>
             
@@ -345,8 +345,8 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, links = <span class="hljs-built_in">document</span>.links; i &lt; links.length; i++) {
-					lastLink = links[i];
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = <span class="hljs-built_in">document</span>.links; i &lt; l.length; i++) {
+					lastLink = l[i];
 
 					<span class="hljs-keyword">if</span> (lastLink.hash.substr(<span class="hljs-number">3</span>) === c) {
 						lastLink.classList.add(<span class="hljs-string">"active"</span>); <span class="hljs-keyword">break</span>;
@@ -396,7 +396,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
-              <p>This gets called when a collection updates.</p>
+              <p>This gets called when a <strong>collection</strong> updates.</p>
 
             </div>
             
@@ -461,7 +461,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
-              <p>Append current collection to <code>HB.root</code>.</p>
+              <p>Append current <strong>collection</strong> to <code>HB.root</code>.</p>
 
             </div>
             
@@ -476,7 +476,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
-              <p>Update body class to match current <code>collection.handle</code>.</p>
+              <p>Update body class to match current <strong>collection</strong> <code>handle</code>.</p>
 
             </div>
             
@@ -492,7 +492,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
-              <p>Update body class to match current <code>collection.type</code>.</p>
+              <p>Update body class to match current <strong>collection</strong> <code>type</code>.</p>
 
             </div>
             
@@ -509,7 +509,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
-              <p>Function to call if collection is not found.</p>
+              <p>Function to call if <strong>collection</strong> is not found.</p>
 
             </div>
             
@@ -542,7 +542,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
-              <p>Variable to hold last used <code>collection.handle</code> and <code>collection.type</code>.</p>
+              <p>Variable to hold last used <strong>collection</strong> <code>handle</code> and <code>type</code>.</p>
 
             </div>
             
@@ -1013,7 +1013,7 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
-              <p>This getter/setter gets/sets the current shown block.</p>
+              <p>This getter/setter gets/sets the current shown <strong>block</strong>.</p>
 
             </div>
             
@@ -1037,8 +1037,9 @@ Hashbang may be freely distributed under the MIT license.
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-58">&#182;</a>
               </div>
-              <p>Sorts <code>this.blocks</code> by <code>by</code> and updates the collection.
-Uses <code>block.reduce</code>, and if <code>by</code> starts with a <code>-</code>, guess what?</p>
+              <p>Sorts <code>blocks</code> by <code>by</code> and updates the <strong>collection</strong>.
+Uses <strong>block</strong> <code>reduce</code>,
+and if <code>by</code> starts with a <code>-</code>, guess what?</p>
 
             </div>
             
@@ -1065,8 +1066,8 @@ Uses <code>block.reduce</code>, and if <code>by</code> starts with a <code>-</co
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-59">&#182;</a>
               </div>
-              <p>This returns a clone of the collection with found <code>this.blocks</code>.
-Uses <code>block.reduce</code>.</p>
+              <p>This returns a clone of the <strong>collection</strong> with found <code>blocks</code>.
+Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
@@ -1089,7 +1090,7 @@ Uses <code>block.reduce</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
-              <p>Updates the collection.</p>
+              <p>Updates the <strong>collection</strong>.</p>
 
             </div>
             
@@ -1140,7 +1141,7 @@ Uses <code>block.reduce</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-63">&#182;</a>
               </div>
-              <p>Check if <code>this.block</code> is defined so it can show <em>subpage</em>.</p>
+              <p>Checks if <code>block</code> is defined so it can show <em>subpage</em>.</p>
 
             </div>
             
@@ -1177,7 +1178,7 @@ Uses <code>block.reduce</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-65">&#182;</a>
               </div>
-              <p>Halt if needed template isn’t defined.</p>
+              <p>Halt if needed <strong>template</strong> isn’t defined.</p>
 
             </div>
             
@@ -1212,7 +1213,7 @@ Uses <code>block.reduce</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
-              <p>Turn HTML generated by <code>template.render</code> into children.</p>
+              <p>Turn HTML generated by <strong>template</strong> <code>render</code> into children.</p>
 
             </div>
             
@@ -1227,7 +1228,7 @@ Uses <code>block.reduce</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-68">&#182;</a>
               </div>
-              <p>Fires the event <code>update</code> when the collection updates.</p>
+              <p>Fires the event <code>update</code> when the <strong>collection</strong> updates.</p>
 
             </div>
             
