@@ -32,6 +32,7 @@
 				'title' => $collection->title,
 				'description' => $collection->description,
 				'type' => $collection->type,
+				'blocks' => [],
 				'status' => 200,
 				'message' => 'Success'
 			];
