@@ -266,20 +266,17 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(c)</span> </span>{
-				<span class="hljs-keyword">if</span> (HB.collections[c] === <span class="hljs-literal">undefined</span>) {
-					HB.collections[c] = <span class="hljs-keyword">new</span> Collection();
-					HB.collections[c].addEventListener(<span class="hljs-string">"update"</span>, HB.update);
+            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(handle)</span> </span>{
+				<span class="hljs-keyword">var</span> c = HB.collections[handle];
+
+				<span class="hljs-keyword">if</span> (c === <span class="hljs-literal">undefined</span> || c.blocks === <span class="hljs-literal">undefined</span>) {
+					c = HB.collections[handle] = <span class="hljs-keyword">new</span> Collection();
+					c.addEventListener(<span class="hljs-string">"update"</span>, HB.update);
 
 					HB.request.get({
-						handle: c,
-						success: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
-							HB.collections[c].load(data);
-						},
-						error: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
-							<span class="hljs-keyword">delete</span> HB.collections[c];
-							HB.fallback();
-						}
+						handle: handle,
+						success: c.load.bind(c),
+						error: HB.fallback
 					});
 				} <span class="hljs-keyword">else</span> {</pre></div></div>
             
@@ -312,7 +309,7 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>					HB.collections[c].block = <span class="hljs-literal">undefined</span>;
+            <div class="content"><div class='highlight'><pre>					c.block = <span class="hljs-literal">undefined</span>;
 				}</pre></div></div>
             
         </li>
@@ -346,10 +343,9 @@ Hashbang may be freely distributed under the MIT license.
             </div>
             
             <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = <span class="hljs-built_in">document</span>.links; i &lt; l.length; i++) {
-					lastLink = l[i];
-
-					<span class="hljs-keyword">if</span> (lastLink.hash.substr(<span class="hljs-number">3</span>) === c) {
-						lastLink.classList.add(<span class="hljs-string">"active"</span>); <span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">if</span> (l[i].hash.substr(<span class="hljs-number">3</span>) === handle) {
+						lastLink = l[i];
+						lastLink.classList.add(<span class="hljs-string">"active"</span>);
 					}
 				}
 			});</pre></div></div>
@@ -367,8 +363,8 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection/:block"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(c, b)</span> </span>{
-				HB.collections[c].block = b;
+            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection/:block"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(handle, block)</span> </span>{
+				HB.collections[handle].block = block;
 			});</pre></div></div>
             
         </li>
@@ -589,7 +585,7 @@ Hashbang may be freely distributed under the MIT license.
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> klass = <span class="hljs-built_in">window</span>.klass = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(methods)</span> </span>{
 		<span class="hljs-keyword">var</span> base = methods.constructor,
-			self = <span class="hljs-keyword">this</span> &amp;&amp; <span class="hljs-keyword">this</span>.prototype || <span class="hljs-literal">false</span>;</pre></div></div>
+			self = (<span class="hljs-keyword">this</span> &amp;&amp; <span class="hljs-keyword">this</span>.prototype) || <span class="hljs-literal">false</span>;</pre></div></div>
             
         </li>
         
@@ -1615,7 +1611,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
 			month = <span class="hljs-keyword">this</span>.getMonth(),
 			year = <span class="hljs-keyword">this</span>.getFullYear(),
 			hours = <span class="hljs-keyword">this</span>.getHours(),
-			twelve = hours % <span class="hljs-number">12</span> || <span class="hljs-number">12</span>,
+			twelve = (hours % <span class="hljs-number">12</span>) || <span class="hljs-number">12</span>,
 			minutes = <span class="hljs-keyword">this</span>.getMinutes(),
 			seconds = <span class="hljs-keyword">this</span>.getSeconds();
 

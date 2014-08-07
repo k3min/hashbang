@@ -34,7 +34,7 @@
 				'type' => $collection->type,
 				'blocks' => [],
 				'status' => 200,
-				'message' => 'Success'
+				'message' => 'OK'
 			];
 
 			$blocks->execute([$collection->id]);

@@ -100,6 +100,12 @@ the **body** will get a class with the current `.handle` and `.type`.
 Hashbang will also search for a `<a href="#!/..."></a>`
 which represents the current **collection**, and give it an `.active` class.
 
+-
+
+It's also possible to run Hashbang without the PHP and database
+if you just store the generated JSON files on your server, and
+change `HB.endpoint` to something like *data/:handle.json*.
+
 Support
 -------
 

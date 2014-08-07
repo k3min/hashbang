@@ -19,10 +19,8 @@
 		<main id="root"></main>
 		<template id="default" is="hb-template">
 			{{ collection.blocks.forEach(function (block) { }}
-			<article>
-				<h1>{{= block.title }}</h1>
-				{{= block.content }}
-			</article>
+			<h1>{{= block.title }}</h1>
+			{{= block.content }}
 			{{ }); }}
 		</template>
 		<template id="list" data-sort="-time" is="hb-template">

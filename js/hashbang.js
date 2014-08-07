@@ -56,20 +56,17 @@
 			HB.router.fallback = HB.fallback;
 
 			// Main route.
-			HB.router.add("/:collection", function (c) {
-				if (HB.collections[c] === undefined) {
-					HB.collections[c] = new Collection();
-					HB.collections[c].addEventListener("update", HB.update);
+			HB.router.add("/:collection", function (handle) {
+				var c = HB.collections[handle];
+
+				if (c === undefined || c.blocks === undefined) {
+					c = HB.collections[handle] = new Collection();
+					c.addEventListener("update", HB.update);
 
 					HB.request.get({
-						handle: c,
-						success: function (data) {
-							HB.collections[c].load(data);
-						},
-						error: function () {
-							delete HB.collections[c];
-							HB.fallback();
-						}
+						handle: handle,
+						success: c.load.bind(c),
+						error: HB.fallback
 					});
 				} else {
 
@@ -78,7 +75,7 @@
 					HB.request.xhr.abort();
 
 					// TODO: Fix this ugly hack.
-					HB.collections[c].block = undefined;
+					c.block = undefined;
 				}
 
 				// Remove `.active` form last link.
@@ -88,17 +85,16 @@
 
 				// Make the current link `.active`.
 				for (var i = 0, l = document.links; i < l.length; i++) {
-					lastLink = l[i];
-
-					if (lastLink.hash.substr(3) === c) {
-						lastLink.classList.add("active"); break;
+					if (l[i].hash.substr(3) === handle) {
+						lastLink = l[i];
+						lastLink.classList.add("active");
 					}
 				}
 			});
 
 			// Route for *subpages*.
-			HB.router.add("/:collection/:block", function (c, b) {
-				HB.collections[c].block = b;
+			HB.router.add("/:collection/:block", function (handle, block) {
+				HB.collections[handle].block = block;
 			});
 
 			// Match routes for initial location.
@@ -153,7 +149,7 @@
 	// `$hidden` makes it non-enumerable. You can even define getters/setters.
 	var klass = window.klass = function (methods) {
 		var base = methods.constructor,
-			self = this && this.prototype || false;
+			self = (this && this.prototype) || false;
 
 		// If extending...
 		if (self) {
@@ -553,7 +549,7 @@
 			month = this.getMonth(),
 			year = this.getFullYear(),
 			hours = this.getHours(),
-			twelve = hours % 12 || 12,
+			twelve = (hours % 12) || 12,
 			minutes = this.getMinutes(),
 			seconds = this.getSeconds();
 
