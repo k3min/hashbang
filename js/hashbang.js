@@ -78,16 +78,19 @@
 					c.block = undefined;
 				}
 
-				// Remove `.active` form last link.
-				if (lastLink !== undefined) {
-					lastLink.classList.remove("active");
-				}
+				// Remove `.active` form last links.
+				lastLinks.forEach(function (link) {
+					link.classList.remove("active");
+				});
 
-				// Make the current link `.active`.
+				// Clear `lastLinks` array.
+				lastLinks = [];
+
+				// Make the current links `.active`.
 				for (var i = 0, l = document.links; i < l.length; i++) {
 					if (l[i].hash.substr(3) === handle) {
-						lastLink = l[i];
-						lastLink.classList.add("active");
+						l[i].classList.add("active");
+						lastLinks.push(l[i]);
 					}
 				}
 			});
@@ -136,8 +139,8 @@
 		}
 	};
 
-	// Variable to hold last `.active` link.
-	var lastLink;
+	// Array to hold last `.active` links.
+	var lastLinks = [];
 
 	// Variable to hold last used **collection** `handle` and `type`.
 	var lastHandle, lastType;
