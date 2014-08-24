@@ -18,7 +18,8 @@ CREATE TABLE collections (
   title varchar(64) NOT NULL,
   description varchar(128) NOT NULL,
   type varchar(16) NOT NULL DEFAULT 'default',
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  UNIQUE (handle)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE blocks (
@@ -31,6 +32,7 @@ CREATE TABLE blocks (
   time datetime NOT NULL,
   collectionId tinyint(1) unsigned DEFAULT NULL,
   PRIMARY KEY (id),
+  UNIQUE (handle),
   FOREIGN KEY (collectionId) REFERENCES collections(id) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
