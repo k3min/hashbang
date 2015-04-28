@@ -1,5 +1,4 @@
-Hashbang
-========
+# Hashbang
 
 Hashbang is *CMS* made easy. No need for complex PHP code and no need
 for thousands of files. It's just one PHP file, one JavaScript file,
@@ -7,8 +6,7 @@ some HTML and a database to store your content.
 
 *The rest is up to you.*
 
-Installation
-------------
+## Installation
 
 1. Create a database
 2. Create database tables using the included **hashbang.sql** file
@@ -18,8 +16,7 @@ Installation
 5. ?
 6. PROFIT
 
-Quick explanation
------------------
+## Quick explanation
 
 Each *page* is a **collection**, **collections** consist of **blocks**.
 Each **block** has its own `handle`, so does each **collection**
@@ -53,16 +50,16 @@ Hashbang will find a **template** based on the **collection**/**block** `type`
 A **template** looks something like this:
 
 	<template id="list" data-sort="-time" is="hb-template">
-		<h1>{{= collection.title }}</h1>
+		<h1>{{ collection.title }}</h1>
 		<ul>
-			{{ collection.blocks.forEach(function (block) { }}
+			{% collection.blocks.forEach(function (block) { %}
 			<li>
-				<a href="{{= block.url }}">{{= block.title }}</a>
-				<time datetime="{{= block.time }}">
-					{{= block.time.format("M. j, Y") }}
+				<a href="{{ block.url }}">{{ block.title }}</a>
+				<time datetime="{{ block.time }}">
+					{{ block.time.format("M. j, Y") }}
 				</time>
 			</li>
-			{{ }); }}
+			{% }); %}
 		</ul>
 	</template>
 
@@ -70,8 +67,8 @@ Every **template** element needs an `id` (**collection**/**block** `type`),
 and `is="hb-template"`. Optional is `data-sort`,
 which specifies in which order the **blocks** are sorted.
 
-- `{{ ... }}` for evaluation
-- `{{= ... }}` for interpolation
+- `{% ... %}` for evaluation
+- `{{ ... }}` for interpolation
 
 -
 
@@ -106,8 +103,7 @@ It's also possible to run Hashbang without the PHP and database
 if you just store the generated JSON files on your server, and
 change `HB.endpoint` to something like *data/:handle.json*.
 
-Support
--------
+## Support
 
 - Chrome 8+
 - Safari 5.1+
@@ -115,8 +111,8 @@ Support
 - Opera 12+
 - Internet Explorer 10+
 
-Todo
-----
+## Todo
+
 - Documentation
 - Use of `history` API
 - Paging

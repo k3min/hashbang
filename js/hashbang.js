@@ -1,6 +1,6 @@
-// 	Hashbang 2.0.3
-// 	Copyright (c) 2014 Kevin Pancake
-// 	Hashbang may be freely distributed under the MIT license.
+// Hashbang 2.0.4
+// Copyright (c) 2015 Kevin Pancake
+// Hashbang may be freely distributed under the MIT license.
 
 
 (function (window) {
@@ -26,7 +26,7 @@
 	var HB = window.HB = {
 
 		// Current version.
-		version: "2.0.3",
+		version: "2.0.4",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -276,15 +276,15 @@
 
 			// Resig modified template function (no `with` block) `+=`.
 			attachedCallback: { value: function () {
-				var source = this.innerHTML;
+				var html = this.innerHTML;
 
-				source = source.replace(/\s{2,}/g, "");
-				source = source.replace(/\{\{=(.*?)\}\}/g, "';s+=$1;s+='");
-				source = source.split("{{").join("';");
-				source = source.split("}}").join("s+='");
-				source = "var s='" + source + "';return s;";
+				html = html.replace(/\s{2,}/g, "");
+				html = html.replace(/\{\{(.*?)\}\}/g, "',$1,'");
+				html = html.split("{%").join("');");
+				html = html.split("%}").join("a.push('");
+				html = "var a=[];a.push('{}');return a.join('');".format(html);
 
-				this.source = new Function("collection", source);
+				this.source = new Function("collection", html);
 			}},
 
 			// This returns a HTML string.

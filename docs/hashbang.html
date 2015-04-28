@@ -27,10 +27,10 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <pre><code>Hashbang <span class="hljs-number">2.0</span><span class="hljs-number">.3</span>
-Copyright (c) <span class="hljs-number">2014</span> Kevin Pancake
-Hashbang may be freely distributed under the MIT license.
-</code></pre>
+              <p>Hashbang 2.0.4
+Copyright (c) 2015 Kevin Pancake
+Hashbang may be freely distributed under the MIT license.</p>
+
             </div>
             
             <div class="content"><div class='highlight'><pre>
@@ -128,7 +128,7 @@ Hashbang may be freely distributed under the MIT license.
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		version: <span class="hljs-string">"2.0.3"</span>,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>		version: <span class="hljs-string">"2.0.4"</span>,</pre></div></div>
             
         </li>
         
@@ -910,15 +910,15 @@ Hashbang may be freely distributed under the MIT license.
             </div>
             
             <div class="content"><div class='highlight'><pre>			attachedCallback: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
-				<span class="hljs-keyword">var</span> source = <span class="hljs-keyword">this</span>.innerHTML;
+				<span class="hljs-keyword">var</span> html = <span class="hljs-keyword">this</span>.innerHTML;
 
-				source = source.replace(<span class="hljs-regexp">/\s{2,}/g</span>, <span class="hljs-string">""</span>);
-				source = source.replace(<span class="hljs-regexp">/\{\{=(.*?)\}\}/g</span>, <span class="hljs-string">"';s+=$1;s+='"</span>);
-				source = source.split(<span class="hljs-string">"{{"</span>).join(<span class="hljs-string">"';"</span>);
-				source = source.split(<span class="hljs-string">"}}"</span>).join(<span class="hljs-string">"s+='"</span>);
-				source = <span class="hljs-string">"var s='"</span> + source + <span class="hljs-string">"';return s;"</span>;
+				html = html.replace(<span class="hljs-regexp">/\s{2,}/g</span>, <span class="hljs-string">""</span>);
+				html = html.replace(<span class="hljs-regexp">/\{\{(.*?)\}\}/g</span>, <span class="hljs-string">"',$1,'"</span>);
+				html = html.split(<span class="hljs-string">"{%"</span>).join(<span class="hljs-string">"');"</span>);
+				html = html.split(<span class="hljs-string">"%}"</span>).join(<span class="hljs-string">"a.push('"</span>);
+				html = <span class="hljs-string">"var a=[];a.push('{}');return a.join('');"</span>.format(html);
 
-				<span class="hljs-keyword">this</span>.source = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Function</span>(<span class="hljs-string">"collection"</span>, source);
+				<span class="hljs-keyword">this</span>.source = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Function</span>(<span class="hljs-string">"collection"</span>, html);
 			}},</pre></div></div>
             
         </li>
