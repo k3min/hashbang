@@ -4,8 +4,8 @@
 @keyframes fade { to { opacity: 0; } }
 @-webkit-keyframes fade { to { opacity: 0; } }
 
-body, dl, input { margin: 0; }
-input, textarea, select, td { padding: 0; }
+body, dl, input, ul { margin: 0; }
+input, textarea, select, ul { padding: 0; }
 div.input, input.delete { margin: 1em 0; }
 
 html, input, textarea, select { background: #fff; font: 200 18px/1.5 "Ek Mukta"; }
@@ -29,7 +29,7 @@ div.input {
 html, input, textarea, select, a, div.input:hover label { color: #2c3e50; }
 div.input:hover { border-bottom-color: #2c3e50; }
 
-input { line-height: 1.7em; } /* Placeholder hack */
+input, select { line-height: 1.7em; height: 1.5em; } /* Placeholder hack */
 
 input.delete, input:invalid { color: #c0392b; }
 
@@ -42,7 +42,7 @@ input.delete {
 
 input.delete:not(:hover) { opacity: 0.5; }
 
-a, label, select { cursor: pointer; }
+a, label, select, input[type=checkbox] { cursor: pointer; }
 a, label, input, textarea, select { display: block; }
 dd, label, input.code, a.collection { font-size: 14px; }
 input.h1 { font-weight: 400; font-size: 22px; }
@@ -60,9 +60,14 @@ a.create {
 	float: right;
 }
 
-dd { margin-left: 1em; }
-dt:not(:first-of-type) { margin-top: 1em; }
+a.create:hover { background-image: url(../res/add-outline.svg); }
+a.block { margin-top: -1.5em; }
 
+li { list-style: none; }
+
+dt:not(:first-of-type) { margin-top: 1em; }
+dd { margin-left: 1em; }
+dl > *:last-child { margin-bottom: 1em; }
 
 nav { width: 192px; margin: 1em; }
 form { width: 480px; }
@@ -97,12 +102,22 @@ input, textarea, select {
 	width: 100%;
 }
 
+input[type=checkbox] { background: url(../res/done-empty.svg) no-repeat 50%; }
+input[type=checkbox]:checked { background-image: url(../res/done.svg); }
+input[type=checkbox]:hover { background-image: url(../res/done-outline.svg); }
+
 div.input:not(.after) { flex-direction: column; -webkit-flex-direction: column; }
 
 div.after {
 	flex-direction: row-reverse; -webkit-flex-direction: row-reverse;
 	justify-content: flex-end; -webkit-justify-content: flex-end;
 	align-items: center; -webkit-align-items: center;
+}
+
+div.row { display: flex; display: -webkit-flex; }
+div.row input[type=checkbox] {
+	width: 1.5em;
+	flex: 0 auto; -webkit-flex: 0 auto;
 }
 
 hb-collection { display: block; }
