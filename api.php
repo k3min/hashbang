@@ -4,7 +4,9 @@
 	$password = 'PASSWORD';
 
 	try {
-		$db = new PDO($dsn, $user, $password);
+		$db = new PDO($dsn, $user, $password, array(
+			PDO::ATTR_EMULATE_PREPARES => false
+		));
 
 		$collections = $db->prepare('SELECT * FROM collections WHERE handle = ?');
 		$blocks = $db->prepare('SELECT * FROM blocks WHERE collectionId = ?');
@@ -27,15 +29,12 @@
 
 		if ($collection = $collections->fetch(PDO::FETCH_OBJ)) {
 			$response = [
-				'id' => 0 + $collection->id,
-				'handle' => $collection->handle,
-				'title' => $collection->title,
-				'description' => $collection->description,
-				'type' => $collection->type,
-				'blocks' => [],
 				'status' => 200,
 				'message' => 'OK'
 			];
+
+			$collection->blocks = [];
+			$collection->url = '#!/' . $collection->handle;
 
 			$blocks->execute([$collection->id]);
 
@@ -43,19 +42,15 @@
 				$tags->execute([$block->id]);
 				$attributes->execute([$block->id]);
 
-				$response['blocks'][] = [
-					'id' => 0 + $block->id,
-					'handle' => $block->handle,
-					'title' => $block->title,
-					'description' => $block->description,
-					'content' => $block->content,
-					'type' => $block->type,
-					'time' => date('c', strtotime($block->time)),
-					'tags' => $tags->fetchAll(PDO::FETCH_KEY_PAIR),
-					'attributes' => $attributes->fetchAll(PDO::FETCH_KEY_PAIR),
-					'url' => sprintf('#!/%s/%s', $collection->handle, $block->handle)
-				];
+				$block->time = date('c', strtotime($block->time));
+				$block->tags = $tags->fetchAll(PDO::FETCH_KEY_PAIR);
+				$block->attributes = $attributes->fetchAll(PDO::FETCH_KEY_PAIR);
+				$block->url = sprintf('#!/%s/%s', $collection->handle, $block->handle);
+
+				$collection->blocks[] = $block;
 			}
+
+			$response += (array)$collection;
 		} else {
 			$response = [
 				'status' => 404,
