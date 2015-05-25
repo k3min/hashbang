@@ -918,7 +918,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 				text = text.replace(<span class="hljs-regexp">/\{\{(.*?)\}\}/g</span>, <span class="hljs-string">"',$1,'"</span>);
 				text = text.split(<span class="hljs-string">"{%"</span>).join(<span class="hljs-string">"');"</span>);
 				text = text.split(<span class="hljs-string">"%}"</span>).join(<span class="hljs-string">"a.push('"</span>);
-				text = <span class="hljs-string">"var a=[];a.push('{}');return a.join('');"</span>.format(text);
+				text = <span class="hljs-string">"var a=[];a.push('"</span> + text + <span class="hljs-string">"');return a.join('');"</span>;
 
 				<span class="hljs-keyword">this</span>.range = <span class="hljs-built_in">document</span>.createRange();
 				<span class="hljs-keyword">this</span>.source = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Function</span>(text);

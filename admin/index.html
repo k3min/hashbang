@@ -20,8 +20,11 @@
 				<dd><a href="{{ block.url }}">{{ block.title }}</a></dd>
 				{% }); %}
 				{% }); %}
-				<dt><a onclick="HA.create(HA.TYPE.COLLECTION);" class="create collection">Create new collection</a></dt>
 			</dl>
+			<ul>
+				<li><a onclick="HA.create(HA.TYPE.COLLECTION);" class="collection">Create new collection</a></li>
+				<li><a onclick="HA.logout();" class="collection">Logout</a></li>
+			</ul>
 		</template>
 		<template id="datalist" is="hb-template">
 			{% this.forEach(function (item) { %}
@@ -71,26 +74,32 @@
 				<input name="time" type="datetime-local" value="{{ block.time.format('Y-m-d\TH:i:s') }}" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2})?" id="time">
 			</div>
 			<div class="input">
-				<label>Tags</label>
-				<table>
-					{% for (var i in block.tags) { %}
-					<tr>
-						<td><input value="{{ i }}" placeholder="Key"></td>
-						<td><input value="{{ block.tags[i] }}" list="tags" placeholder="Value"></td>
-					</tr>
+				<label>Tags <a onclick="HA.create(HA.TYPE.TAG);" class="create" title="Create new tag">Create new tag</a></label>
+				{% HA.metadata.tags.forEach(function (tag) { %}
+				<div class="row">
+					<input value="{{ tag.handle }}" maxlength="32" pattern="[a-z0-9-]+" class="code">
+					<input value="{{ tag.title }}" maxlength="64" list="tags" class="code">
+					{% if (HA.find(block.tags, tag)) { %}
+					<input type="checkbox" class="code" checked>
+					{% } else { %}
+					<input type="checkbox" class="code">
 					{% } %}
-				</table>
+				</div>
+				{% }); %}
 			</div>
 			<div class="input">
-				<label>Attributes</label>
-				<table>
-					{% for (var i in block.attributes) { %}
-					<tr>
-						<td><input value="{{ i }}" placeholder="Key"></td>
-						<td><input value="{{ block.attributes[i] }}" list="attributes" placeholder="Value"></td>
-					</tr>
+				<label>Attributes <a onclick="HA.create(HA.TYPE.ATTRIBUTE);" class="create" title="Create new attribute">Create new attribute</a></label>
+				{% HA.metadata.attributes.forEach(function (attribute) { %}
+				<div class="row">
+					<input value="{{ attribute.handle }}" maxlength="32" pattern="[a-z0-9-]+" class="code">
+					<input value="{{ attribute.title }}" maxlength="64" list="attributes" class="code">
+					{% if (HA.find(block.attributes, attribute)) { %}
+					<input type="checkbox" class="code" checked>
+					{% } else { %}
+					<input type="checkbox" class="code">
 					{% } %}
-				</table>
+				</div>
+				{% }); %}
 			</div>
 			<div class="input">
 				<label>Parent</label>

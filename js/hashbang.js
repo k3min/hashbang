@@ -284,7 +284,7 @@
 				text = text.replace(/\{\{(.*?)\}\}/g, "',$1,'");
 				text = text.split("{%").join("');");
 				text = text.split("%}").join("a.push('");
-				text = "var a=[];a.push('{}');return a.join('');".format(text);
+				text = "var a=[];a.push('" + text + "');return a.join('');";
 
 				this.range = document.createRange();
 				this.source = new Function(text);

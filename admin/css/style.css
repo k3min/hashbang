@@ -44,27 +44,25 @@ input.delete:not(:hover) { opacity: 0.5; }
 
 a, label, select { cursor: pointer; }
 a, label, input, textarea, select { display: block; }
-dd, label, input.code, a.create.collection { font-size: 14px; }
+dd, label, input.code, a.collection { font-size: 14px; }
 input.h1 { font-weight: 400; font-size: 22px; }
 
 html { cursor: default; }
 body { display: flex; display: -webkit-flex; }
 
 a { text-decoration: none; }
-a.create.block {
+a.create {
 	background: url(../res/add.svg) no-repeat 50%;
 	text-indent: 100%;
 	overflow: hidden;
 	width: 1.5em;
 	white-space: nowrap;
+	float: right;
 }
 
-dt { display: flex; display: -webkit-flex; }
-dt a:first-child { flex: 1; -webkit-flex: 1; }
 dd { margin-left: 1em; }
 dt:not(:first-of-type) { margin-top: 1em; }
 
-table { width: 100%; border-spacing: 0; }
 
 nav { width: 192px; margin: 1em; }
 form { width: 480px; }

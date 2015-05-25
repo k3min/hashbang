@@ -14,7 +14,7 @@
 	var HA = window.HA = {
 
 		// Current version.
-		version: "0.0.1",
+		version: "0.0.2",
 
 		// REST API endpoint.
 		endpoint: "api/",
@@ -128,6 +128,22 @@
 			alert(HA.strings[data.status] || HA.strings.error);
 		},
 
+		// Find.
+		find: function (data, needle) {
+			for (var handle in data) {
+				return (needle.handle === handle && needle.title === data[handle]);
+			}
+
+			return false;
+		},
+
+		// Logout.
+		logout: function () {
+			HA.request.error = null;
+			HA.request.xhr.open("HEAD", ":protocol//logout@:host:port:pathname".format(location) + HA.endpoint);
+			HA.request.xhr.send();
+		},
+
 		// Action types.
 		TYPE: {
 			COLLECTION: "collection",
@@ -154,7 +170,7 @@
 		this.success = HA.sync;
 		this.error = HA.error;
 
-		this.xhr.open(params.method || "HEAD", this.endpoint, true);
+		this.xhr.open(params.method, this.endpoint, true);
 		this.xhr.setRequestHeader("Content-Type", "application/json");
 		this.xhr.send(JSON.stringify(params.data));
 	};

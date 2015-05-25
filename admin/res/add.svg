@@ -1,6 +1,6 @@
 <!DOCTYPE svg>
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-	<g fill="#bdc3c7" transform="scale(0.046875)">
+	<g fill="#bdc3c7" transform="translate(2 2) scale(0.0390625)">
 		<path d="M384,265H264v119h-17V265H128v-17h119V128h17v120h120V265z" />
 	</g>
 </svg>
