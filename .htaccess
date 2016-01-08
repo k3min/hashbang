@@ -1,5 +1,5 @@
 <IfModule mod_rewrite.c>
-  RewriteEngine on
+  RewriteEngine On
   RewriteBase /
 
   RewriteRule ^api/(.*)$ api.php?handle=$1 [L]

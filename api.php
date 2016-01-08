@@ -34,7 +34,7 @@
 			];
 
 			$collection->blocks = [];
-			$collection->url = '#!/' . $collection->handle;
+			$collection->url = "#!/{$collection->handle}";
 
 			$blocks->execute([$collection->id]);
 
@@ -45,7 +45,7 @@
 				$block->time = date('c', strtotime($block->time));
 				$block->tags = $tags->fetchAll(PDO::FETCH_KEY_PAIR);
 				$block->attributes = $attributes->fetchAll(PDO::FETCH_KEY_PAIR);
-				$block->url = sprintf('#!/%s/%s', $collection->handle, $block->handle);
+				$block->url = "#!/{$collection->handle}/{$block->handle}";
 
 				$collection->blocks[] = $block;
 			}
@@ -64,7 +64,7 @@
 		];
 	}
 
-	header(sprintf('HTTP/1.1 %d %s', $response['status'], $response['message']));
+	header("HTTP/1.1 {$response['status']} {$response['message']}");
 	header('Cache-Control: no-cache');
 	header('Content-Type: application/json');
 

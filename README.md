@@ -116,5 +116,4 @@ change `HB.endpoint` to something like *data/:handle.json*.
 - Documentation
 - Use of `history` API
 - Paging
-- Editor
 - ...

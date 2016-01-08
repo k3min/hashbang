@@ -27,16 +27,16 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <p>Hashbang 2.0.5
-Copyright (c) 2015 Kevin Pancake
+              <p>Hashbang 2.0.6
+Copyright (c) 2016 Kevin Pancake
 Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>
 
-(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(window)</span> </span>{
-<span class="hljs-pi">	"use strict"</span>;</pre></div></div>
+(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">window</span>) </span>{
+<span class="hljs-meta">	"use strict"</span>;</pre></div></div>
             
         </li>
         
@@ -97,7 +97,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> isTrident = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(n)</span> </span>{
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> isTrident = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">n</span>) </span>{
 		<span class="hljs-keyword">var</span> app = navigator.appVersion;
 		<span class="hljs-keyword">return</span> <span class="hljs-regexp">/Trident/</span>.test(app) &amp;&amp; app.match(<span class="hljs-regexp">/Trident\/([0-9])/</span>)[<span class="hljs-number">1</span>] &lt;= n;
 	};</pre></div></div>
@@ -130,7 +130,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		version: <span class="hljs-string">"2.0.4"</span>,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>		version: <span class="hljs-string">"2.0.6"</span>,</pre></div></div>
             
         </li>
         
@@ -175,7 +175,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		main: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(home, root)</span> </span>{</pre></div></div>
+            <div class="content"><div class='highlight'><pre>		main: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">home, root</span>) </span>{</pre></div></div>
             
         </li>
         
@@ -268,7 +268,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(handle)</span> </span>{
+            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">handle</span>) </span>{
 				<span class="hljs-keyword">var</span> c = HB.collections[handle];
 
 				<span class="hljs-keyword">if</span> (c === <span class="hljs-literal">undefined</span> || c.blocks === <span class="hljs-literal">undefined</span> || HB.noCache) {
@@ -327,7 +327,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>				lastLinks.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(link)</span> </span>{
+            <div class="content"><div class='highlight'><pre>				lastLinks.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">link</span>) </span>{
 					link.classList.remove(<span class="hljs-string">"active"</span>);
 				});</pre></div></div>
             
@@ -380,7 +380,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection/:block"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(handle, block)</span> </span>{
+            <div class="content"><div class='highlight'><pre>			HB.router.add(<span class="hljs-string">"/:collection/:block"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">handle, block</span>) </span>{
 				HB.collections[handle].block = block;
 			});</pre></div></div>
             
@@ -413,7 +413,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		update: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(event)</span> </span>{</pre></div></div>
+            <div class="content"><div class='highlight'><pre>		update: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{</pre></div></div>
             
         </li>
         
@@ -542,7 +542,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		fallback: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>		fallback: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 			location.hash = HB.home;
 		}
 	};</pre></div></div>
@@ -616,7 +616,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> klass = <span class="hljs-built_in">window</span>.klass = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(methods)</span> </span>{
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> klass = <span class="hljs-built_in">window</span>.klass = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">methods</span>) </span>{
 		<span class="hljs-keyword">var</span> base = methods.constructor,
 			self = (<span class="hljs-keyword">this</span> &amp;&amp; <span class="hljs-keyword">this</span>.prototype) || <span class="hljs-literal">false</span>;</pre></div></div>
             
@@ -634,11 +634,7 @@ Hashbang may be freely distributed under the MIT license.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (self) {
-			base.prototype = clone(self, {
-				parent: {
-					get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ <span class="hljs-keyword">return</span> self; }
-				}
-			});
+			base.prototype = clone(self, { parent: { value: self } });
 		}
 
 		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> methods) {
@@ -647,11 +643,13 @@ Hashbang may be freely distributed under the MIT license.</p>
 				object = <span class="hljs-regexp">/\$static/</span>.test(i) ? base : base.prototype,
 				descriptor = { enumerable: !<span class="hljs-regexp">/\$hidden|^constructor/</span>.test(i) };
 
-			<span class="hljs-keyword">if</span> (method.get !== <span class="hljs-literal">undefined</span> || method.set !== <span class="hljs-literal">undefined</span>) {
+			<span class="hljs-keyword">if</span> (method !== <span class="hljs-literal">null</span> &amp;&amp; (<span class="hljs-keyword">typeof</span> method.get === <span class="hljs-string">"function"</span> ||
+			                        <span class="hljs-keyword">typeof</span> method.set === <span class="hljs-string">"function"</span>)) {
 				descriptor.get = method.get;
 				descriptor.set = method.set;
 			} <span class="hljs-keyword">else</span> {
 				descriptor.value = method;
+				descriptor.writable = <span class="hljs-keyword">typeof</span> method !== <span class="hljs-string">"function"</span>;
 			}
 
 			define(object, property, descriptor);
@@ -745,14 +743,16 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> register = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(element, p)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> register = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">element, p</span>) </span>{
 			<span class="hljs-keyword">if</span> (isTrident(<span class="hljs-number">6</span>)) {
-				<span class="hljs-built_in">Object</span>.getOwnPropertyNames(p).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(n)</span> </span>{
+				<span class="hljs-built_in">Object</span>.getOwnPropertyNames(p).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">n</span>) </span>{
 					define(element, n, <span class="hljs-built_in">Object</span>.getOwnPropertyDescriptor(p, n));
 				});
-			} <span class="hljs-keyword">else</span> {
-				element.__proto__ = p;
+
+				<span class="hljs-keyword">return</span>;
 			}
+
+			element.__proto__ = p;
 		};</pre></div></div>
             
         </li>
@@ -768,10 +768,10 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		<span class="hljs-built_in">document</span>.registerElement = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(element, props)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-built_in">document</span>.registerElement = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">element, props</span>) </span>{
 			customElements[element] = props;
 
-			<span class="hljs-keyword">var</span> HTMLCustomElement = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HTMLCustomElement</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">var</span> HTMLCustomElement = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HTMLCustomElement</span>(<span class="hljs-params"></span>) </span>{
 				<span class="hljs-keyword">var</span> custom = <span class="hljs-built_in">document</span>.createElement(element);
 
 				register(custom, props.prototype);
@@ -801,7 +801,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		<span class="hljs-built_in">document</span>.addEventListener(<span class="hljs-string">"DOMContentLoaded"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-built_in">document</span>.addEventListener(<span class="hljs-string">"DOMContentLoaded"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> customElements) {
 				<span class="hljs-keyword">var</span> e, x = customElements[i][<span class="hljs-string">"extends"</span>];
 
@@ -876,7 +876,7 @@ Hashbang may be freely distributed under the MIT license.</p>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">window</span>.HTMLTemplateElement === <span class="hljs-literal">undefined</span>) {
 		<span class="hljs-built_in">window</span>.HTMLTemplateElement = HTMLElement.extend({
-			constructor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HTMLTemplateElement</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">constructor</span>: function HTMLTemplateElement() {
 				<span class="hljs-built_in">console</span>.error(<span class="hljs-string">"Illegal constructor"</span>);
 			}
 		});
@@ -911,7 +911,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			attachedCallback: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>			attachedCallback: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 				<span class="hljs-keyword">var</span> text = <span class="hljs-keyword">this</span>.innerHTML;
 
 				text = text.replace(<span class="hljs-regexp">/\s{2,}/g</span>, <span class="hljs-string">""</span>);
@@ -937,7 +937,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			render: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+            <div class="content"><div class='highlight'><pre>			render: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
 				<span class="hljs-keyword">this</span>.range.selectNode(<span class="hljs-built_in">document</span>.body);
 				<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.range.createContextualFragment(<span class="hljs-keyword">this</span>.source.call(data));
 			}}
@@ -1013,7 +1013,7 @@ Hashbang may be freely distributed under the MIT license.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			load: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+            <div class="content"><div class='highlight'><pre>			load: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
 				<span class="hljs-keyword">this</span>.id = data.id;
 				<span class="hljs-keyword">this</span>.handle = data.handle;
 				<span class="hljs-keyword">this</span>.title = data.title;
@@ -1022,15 +1022,16 @@ Hashbang may be freely distributed under the MIT license.</p>
 				<span class="hljs-keyword">this</span>.url = data.url;
 				<span class="hljs-keyword">this</span>.template = <span class="hljs-built_in">window</span>[data.type] || <span class="hljs-built_in">window</span>.collection || <span class="hljs-built_in">window</span>.default;
 
-				<span class="hljs-keyword">this</span>.blocks = data.blocks.map(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+				<span class="hljs-keyword">this</span>.blocks = data.blocks.map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
 					<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Block(data);
 				});
 
 				<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.template.dataset.sort !== <span class="hljs-literal">undefined</span>) {
 					<span class="hljs-keyword">this</span>.sort(<span class="hljs-keyword">this</span>.template.dataset.sort);
-				} <span class="hljs-keyword">else</span> {
-					<span class="hljs-keyword">this</span>.update();
+					<span class="hljs-keyword">return</span>;
 				}
+
+				<span class="hljs-keyword">this</span>.update();
 			}},</pre></div></div>
             
         </li>
@@ -1047,8 +1048,8 @@ Hashbang may be freely distributed under the MIT license.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>			id: {
-				get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._id; },
-				set: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+				get: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._id; },
+				set: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{
 					<span class="hljs-keyword">this</span>._id = value;
 				}
 			},</pre></div></div>
@@ -1067,8 +1068,8 @@ Hashbang may be freely distributed under the MIT license.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>			block: {
-				get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._block; },
-				set: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+				get: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._block; },
+				set: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">value</span>) </span>{
 					<span class="hljs-keyword">this</span>._block = value;
 
 					<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.blocks !== <span class="hljs-literal">undefined</span>) {
@@ -1092,15 +1093,15 @@ and if <code>by</code> starts with a <code>-</code>, guess what?</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			sort: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(by)</span> </span>{
+            <div class="content"><div class='highlight'><pre>			sort: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">by</span>) </span>{
 				<span class="hljs-keyword">var</span> order = by[<span class="hljs-number">0</span>] === <span class="hljs-string">"-"</span> ?
-					(by = by.substr(<span class="hljs-number">1</span>), -<span class="hljs-number">1</span>) : <span class="hljs-number">1</span>;
+					(by = by.substr(<span class="hljs-number">1</span>), <span class="hljs-number">-1</span>) : <span class="hljs-number">1</span>;
 
-				<span class="hljs-keyword">this</span>.blocks.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(a, b)</span> </span>{
+				<span class="hljs-keyword">this</span>.blocks.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">a, b</span>) </span>{
 					a = a.reduce(by);
 					b = b.reduce(by);
 
-					<span class="hljs-keyword">return</span> (a &lt; b ? -<span class="hljs-number">1</span> : a &gt; b ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>) * order;
+					<span class="hljs-keyword">return</span> (a &lt; b ? <span class="hljs-number">-1</span> : a &gt; b ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>) * order;
 				});
 
 				<span class="hljs-keyword">this</span>.update();
@@ -1120,10 +1121,10 @@ Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			search: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(key, value)</span> </span>{
+            <div class="content"><div class='highlight'><pre>			search: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">key, value</span>) </span>{
 				<span class="hljs-keyword">var</span> data = clone(<span class="hljs-keyword">this</span>);
 
-				data.blocks = data.blocks.filter(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(block)</span> </span>{
+				data.blocks = data.blocks.filter(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">block</span>) </span>{
 					<span class="hljs-keyword">return</span> block.reduce(key) === value;
 				});
 
@@ -1143,7 +1144,7 @@ Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			update: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{</pre></div></div>
+            <div class="content"><div class='highlight'><pre>			update: { value: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{</pre></div></div>
             
         </li>
         
@@ -1346,7 +1347,7 @@ Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		constructor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Block</span><span class="hljs-params">(data)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">constructor</span>: function Block(data) {
 			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> key <span class="hljs-keyword">in</span> data) {
 				<span class="hljs-keyword">this</span>[key] = data[key];
 			}
@@ -1368,7 +1369,7 @@ Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		reduce: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(to)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		reduce: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">to</span>) </span>{
 			<span class="hljs-keyword">var</span> find = to.split(<span class="hljs-string">"."</span>),
 				result = <span class="hljs-keyword">this</span>[find[<span class="hljs-number">0</span>]];
 
@@ -1423,7 +1424,7 @@ Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		constructor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Router</span><span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">constructor</span>: function Router() {
 			<span class="hljs-built_in">window</span>.addEventListener(<span class="hljs-string">"hashchange"</span>, <span class="hljs-keyword">this</span>.match.bind(<span class="hljs-keyword">this</span>));
 		},</pre></div></div>
             
@@ -1440,7 +1441,7 @@ Uses <strong>block</strong> <code>reduce</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		add$hidden: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(route, callback)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		add$hidden: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">route, callback</span>) </span>{
 			<span class="hljs-keyword">var</span> regExp = <span class="hljs-keyword">new</span> <span class="hljs-built_in">RegExp</span>(route.replace(<span class="hljs-regexp">/:[a-z]+/g</span>, <span class="hljs-string">"([a-z0-9-]+)"</span>));
 
 			<span class="hljs-keyword">this</span>[route] = callback;
@@ -1461,7 +1462,7 @@ and tries to do something with the defined routes.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		match$hidden: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>		match$hidden: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 			<span class="hljs-keyword">var</span> fallback = <span class="hljs-literal">true</span>;
 
 			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>) {
@@ -1542,7 +1543,7 @@ and tries to do something with the defined routes.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		constructor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Request</span><span class="hljs-params">(endpoint)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">constructor</span>: function Request(endpoint) {
 			<span class="hljs-keyword">this</span>.endpoint = endpoint;
 
 			<span class="hljs-keyword">this</span>.xhr = <span class="hljs-keyword">new</span> XMLHttpRequest();
@@ -1564,14 +1565,17 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(props)</span> </span>{
+            <div class="content"><div class='highlight'><pre>		get: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">props</span>) </span>{
 			html.classList.add(<span class="hljs-string">"loading"</span>);
 
+			<span class="hljs-keyword">this</span>.accept = props.accept || <span class="hljs-string">"application/json"</span>;
 			<span class="hljs-keyword">this</span>.success = props.success;
 			<span class="hljs-keyword">this</span>.error = props.error;
+			<span class="hljs-keyword">this</span>.response = props.response || <span class="hljs-string">"json"</span>;
 
 			<span class="hljs-keyword">this</span>.xhr.open(<span class="hljs-string">"GET"</span>, <span class="hljs-keyword">this</span>.endpoint.format(props));
-			<span class="hljs-keyword">this</span>.xhr.setRequestHeader(<span class="hljs-string">"Accept"</span>, <span class="hljs-string">"application/json"</span>);
+			<span class="hljs-keyword">this</span>.xhr.responseType = <span class="hljs-keyword">this</span>.response;
+			<span class="hljs-keyword">this</span>.xhr.setRequestHeader(<span class="hljs-string">"Accept"</span>, <span class="hljs-keyword">this</span>.accept);
 			<span class="hljs-keyword">this</span>.xhr.send();
 		},</pre></div></div>
             
@@ -1588,25 +1592,29 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		load: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+            <div class="content"><div class='highlight'><pre>		load: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 			<span class="hljs-keyword">try</span> {
-				<span class="hljs-keyword">var</span> data = <span class="hljs-built_in">JSON</span>.parse(<span class="hljs-keyword">this</span>.xhr.responseText);
+				<span class="hljs-keyword">var</span> data = <span class="hljs-keyword">this</span>.xhr.response;
 
-				<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.xhr.status === <span class="hljs-number">200</span> &amp;&amp; <span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.success === <span class="hljs-string">"function"</span>) {
-					<span class="hljs-keyword">this</span>.success(data);
+				<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.xhr.status === <span class="hljs-number">200</span>) {
+					<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.success === <span class="hljs-string">"function"</span>) {
+						<span class="hljs-keyword">this</span>.success(data);
+					}
 				} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.error === <span class="hljs-string">"function"</span>) {
 					<span class="hljs-keyword">this</span>.error(data);
 				}
 			} <span class="hljs-keyword">catch</span> (e) {
-				<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.error === <span class="hljs-string">"function"</span>) {
-					<span class="hljs-keyword">this</span>.error({
-						status: -<span class="hljs-number">1</span>,
-						message: e.message
-					});
-				}
-			}
+				e.status = <span class="hljs-number">-1</span>;
 
-			html.classList.remove(<span class="hljs-string">"loading"</span>);
+				<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> <span class="hljs-keyword">this</span>.error === <span class="hljs-string">"function"</span>) {
+					<span class="hljs-keyword">this</span>.error(e);
+					<span class="hljs-keyword">return</span>;
+				}
+
+				<span class="hljs-built_in">console</span>.error(e);
+			} <span class="hljs-keyword">finally</span> {
+				html.classList.remove(<span class="hljs-string">"loading"</span>);
+			}
 		}
 	});</pre></div></div>
             
@@ -1648,7 +1656,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">String</span>.prototype.format = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">String</span>.prototype.format = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
 		<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>;
 
 		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> data !== <span class="hljs-string">"object"</span>) {</pre></div></div>
@@ -1669,7 +1677,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
             <div class="content"><div class='highlight'><pre>			data = [].slice.call(<span class="hljs-built_in">arguments</span>);
 		}
 
-		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.replace(<span class="hljs-regexp">/:([a-z]+)|\{([0-9])?\}/g</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">($0, $1, $2)</span> </span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.replace(<span class="hljs-regexp">/:([a-z]+)|\{([0-9])?\}/g</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">$0, $1, $2</span>) </span>{
 			<span class="hljs-keyword">return</span> data[$<span class="hljs-number">1</span> || $<span class="hljs-number">2</span> || i++];
 		});
 	};</pre></div></div>
@@ -1687,7 +1695,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">Date</span>.prototype.format = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(spec)</span> </span>{
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-built_in">Date</span>.prototype.format = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">spec</span>) </span>{
 		<span class="hljs-keyword">var</span> ords = <span class="hljs-built_in">Date</span>.ordinals,
 			days = <span class="hljs-built_in">Date</span>.days,
 			months = <span class="hljs-built_in">Date</span>.months,
@@ -1726,7 +1734,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
 			s: seconds &lt; <span class="hljs-number">10</span> ? <span class="hljs-string">"0"</span> + seconds : seconds
 		};
 
-		<span class="hljs-keyword">return</span> spec.replace(<span class="hljs-regexp">/\\?([a-z])/gi</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">($0, $1)</span> </span>{
+		<span class="hljs-keyword">return</span> spec.replace(<span class="hljs-regexp">/\\?([a-z])/gi</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">$0, $1</span>) </span>{
 			<span class="hljs-keyword">return</span> options[$<span class="hljs-number">0</span>] !== <span class="hljs-literal">undefined</span> ? options[$<span class="hljs-number">0</span>] : $<span class="hljs-number">1</span>;
 		});
 	};</pre></div></div>
@@ -1786,7 +1794,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (html.dataset === <span class="hljs-literal">undefined</span>) {
 		define(HTMLElement.prototype, <span class="hljs-string">"dataset"</span>, {
-			get: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+			get: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 				<span class="hljs-keyword">var</span> dataset = {},
 					attributes = <span class="hljs-keyword">this</span>.attributes;
 
@@ -1818,7 +1826,7 @@ Calls <code>props.success</code> if all good, else <code>props.error</code>.</p>
             
             <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">if</span> (isTrident(<span class="hljs-number">7</span>)) {
 		<span class="hljs-built_in">window</span>.CustomEvent = Event.extend({
-			constructor: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">CustomEvent</span><span class="hljs-params">(type, props)</span> </span>{
+			<span class="hljs-keyword">constructor</span>: function CustomEvent(type, props) {
 				<span class="hljs-keyword">var</span> event = <span class="hljs-built_in">document</span>.createEvent(<span class="hljs-string">"CustomEvent"</span>);
 
 				event.initCustomEvent(type, <span class="hljs-literal">false</span>, <span class="hljs-literal">false</span>, props.detail);

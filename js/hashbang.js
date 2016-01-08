@@ -1,5 +1,5 @@
-// Hashbang 2.0.5
-// Copyright (c) 2015 Kevin Pancake
+// Hashbang 2.0.6
+// Copyright (c) 2016 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
 
 
@@ -28,7 +28,7 @@
 	var HB = window.HB = {
 
 		// Current version.
-		version: "2.0.4",
+		version: "2.0.6",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -162,11 +162,7 @@
 
 		// If extending...
 		if (self) {
-			base.prototype = clone(self, {
-				parent: {
-					get: function () { return self; }
-				}
-			});
+			base.prototype = clone(self, { parent: { value: self } });
 		}
 
 		for (var i in methods) {
@@ -175,11 +171,13 @@
 				object = /\$static/.test(i) ? base : base.prototype,
 				descriptor = { enumerable: !/\$hidden|^constructor/.test(i) };
 
-			if (method.get !== undefined || method.set !== undefined) {
+			if (method !== null && (typeof method.get === "function" ||
+			                        typeof method.set === "function")) {
 				descriptor.get = method.get;
 				descriptor.set = method.set;
 			} else {
 				descriptor.value = method;
+				descriptor.writable = typeof method !== "function";
 			}
 
 			define(object, property, descriptor);
@@ -210,9 +208,11 @@
 				Object.getOwnPropertyNames(p).forEach(function (n) {
 					define(element, n, Object.getOwnPropertyDescriptor(p, n));
 				});
-			} else {
-				element.__proto__ = p;
+
+				return;
 			}
+
+			element.__proto__ = p;
 		};
 
 		// This is (almost) the same as the real deal.
@@ -324,9 +324,10 @@
 
 				if (this.template.dataset.sort !== undefined) {
 					this.sort(this.template.dataset.sort);
-				} else {
-					this.update();
+					return;
 				}
+
+				this.update();
 			}},
 
 			// Suppress error spam.
@@ -530,34 +531,41 @@
 		get: function (props) {
 			html.classList.add("loading");
 
+			this.accept = props.accept || "application/json";
 			this.success = props.success;
 			this.error = props.error;
+			this.response = props.response || "json";
 
 			this.xhr.open("GET", this.endpoint.format(props));
-			this.xhr.setRequestHeader("Accept", "application/json");
+			this.xhr.responseType = this.response;
+			this.xhr.setRequestHeader("Accept", this.accept);
 			this.xhr.send();
 		},
 
 		// Response to JSON.
 		load: function () {
 			try {
-				var data = JSON.parse(this.xhr.responseText);
+				var data = this.xhr.response;
 
-				if (this.xhr.status === 200 && typeof this.success === "function") {
-					this.success(data);
+				if (this.xhr.status === 200) {
+					if (typeof this.success === "function") {
+						this.success(data);
+					}
 				} else if (typeof this.error === "function") {
 					this.error(data);
 				}
 			} catch (e) {
-				if (typeof this.error === "function") {
-					this.error({
-						status: -1,
-						message: e.message
-					});
-				}
-			}
+				e.status = -1;
 
-			html.classList.remove("loading");
+				if (typeof this.error === "function") {
+					this.error(e);
+					return;
+				}
+
+				console.error(e);
+			} finally {
+				html.classList.remove("loading");
+			}
 		}
 	});
 

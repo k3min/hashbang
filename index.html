@@ -18,15 +18,15 @@
 		</header>
 		<main id="root"></main>
 		<template id="default" is="hb-template">
-			{% collection.blocks.forEach(function (block) { %}
+			{% this.blocks.forEach(function (block) { %}
 			<h1>{{ block.title }}</h1>
 			{{ block.content }}
 			{% }); %}
 		</template>
 		<template id="list" data-sort="-time" is="hb-template">
-			<h1>{{ collection.title }}</h1>
+			<h1>{{ this.title }}</h1>
 			<ul>
-				{% collection.blocks.forEach(function (block) { %}
+				{% this.blocks.forEach(function (block) { %}
 				<li>
 					<a href="{{ block.url }}">{{ block.title }}</a>
 					<time datetime="{{ block.time }}">

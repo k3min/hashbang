@@ -1,9 +1,9 @@
-<Limit POST DELETE>
+<Limit POST DELETE PUT>
   allow from all
 </Limit>
 
 <IfModule mod_rewrite.c>
-  RewriteEngine on
+  RewriteEngine On
   RewriteBase /admin/
 
   RewriteRule ^api/$ api.php [L]
