@@ -338,6 +338,14 @@
 				}
 			},
 
+			// Fix tooltip.
+			title: {
+				get: function () { return this._title; },
+				set: function (value) {
+					this._title = value;
+				}
+			},
+
 			// This getter/setter gets/sets the current shown **block**.
 			block: {
 				get: function () { return this._block; },

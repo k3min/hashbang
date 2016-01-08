@@ -4,7 +4,7 @@
 	$password = 'PASSWORD';
 
 	try {
-		if ($_SERVER['PHP_AUTH_USER'] !== $user && $authPW !== $_SERVER['PHP_AUTH_PW']) {
+		if ($_SERVER['PHP_AUTH_USER'] !== $user && $_SERVER['PHP_AUTH_PW'] !== $password) {
 			header('WWW-Authenticate: Basic');
 			throw new Exception('Unauthorized', 401);
 		}
