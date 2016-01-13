@@ -58,7 +58,7 @@
 			HB.router.fallback = HB.fallback;
 
 			// Main route.
-			HB.router.add("/:collection", function (handle) {
+			HB.router.add("/:collection(/:block)?", function (handle, block) {
 				var c = HB.collections[handle];
 
 				if (c === undefined || c.blocks === undefined || HB.noCache) {
@@ -75,10 +75,9 @@
 					// Abort ongoing request
 					// (to prevent unwanted behaviour on slower connections).
 					HB.request.xhr.abort();
-
-					// TODO: Fix this ugly hack.
-					c.block = undefined;
 				}
+
+				c.block = block;
 
 				// Remove `.active` form last links.
 				lastLinks.forEach(function (link) {
@@ -95,11 +94,6 @@
 						lastLinks.push(l[i]);
 					}
 				}
-			});
-
-			// Route for *subpages*.
-			HB.router.add("/:collection/:block", function (handle, block) {
-				HB.collections[handle].block = block;
 			});
 
 			// Match routes for initial location.
@@ -291,9 +285,9 @@
 			}},
 
 			// This returns a HTML string.
-			render: { value: function (data) {
+			render: { value: function (d) {
 				this.range.selectNode(document.body);
-				return this.range.createContextualFragment(this.source.call(data));
+				return this.range.createContextualFragment(this.source.call(d));
 			}}
 		}),
 
@@ -316,7 +310,10 @@
 				this.description = data.description;
 				this.type = data.type;
 				this.url = data.url;
-				this.template = window[data.type] || window.collection || window.default;
+
+				this.template = window[data.type] ||
+								window.collection ||
+								window.default;
 
 				this.blocks = data.blocks.map(function (data) {
 					return new Block(data);
@@ -454,7 +451,10 @@
 			}
 
 			this.time = new Date(this.time);
-			this.template = window[this.type] || window.block || window.default;
+
+			this.template = window[this.type] ||
+							window.block ||
+							window.default;
 		},
 
 		// Returns the value of a property. Like `attributes.example`.
@@ -484,6 +484,12 @@
 
 		// Adds the `route` — with corresponding `callback` — to the router.
 		add$hidden: function (route, callback) {
+			var opt = /\((\/:[a-z]+)\)\?/g;
+
+			if (opt.test(route)) {
+				route = route.replace(opt, "(?:$1)?");
+			}
+
 			var regExp = new RegExp(route.replace(/:[a-z]+/g, "([a-z0-9-]+)"));
 
 			this[route] = callback;
