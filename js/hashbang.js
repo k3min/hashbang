@@ -1,4 +1,4 @@
-// Hashbang 2.0.6
+// Hashbang 2.0.7
 // Copyright (c) 2016 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
 
@@ -28,7 +28,7 @@
 	var HB = window.HB = {
 
 		// Current version.
-		version: "2.0.6",
+		version: "2.0.7",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -58,46 +58,49 @@
 			HB.router.fallback = HB.fallback;
 
 			// Main route.
-			HB.router.add("/:collection(/:block)?", function (handle, block) {
-				var c = HB.collections[handle];
-
-				if (c === undefined || c.blocks === undefined || HB.noCache) {
-					c = HB.collections[handle] = new Collection();
-					c.addEventListener("update", HB.update);
-
-					HB.request.get({
-						handle: handle,
-						success: c.load.bind(c),
-						error: HB.fallback
-					});
-				} else {
-
-					// Abort ongoing request
-					// (to prevent unwanted behaviour on slower connections).
-					HB.request.xhr.abort();
-				}
-
-				c.block = block;
-
-				// Remove `.active` form last links.
-				lastLinks.forEach(function (link) {
-					link.classList.remove("active");
-				});
-
-				// Clear `lastLinks` array.
-				lastLinks = [];
-
-				// Make the current links `.active`.
-				for (var i = 0, l = document.links; i < l.length; i++) {
-					if (l[i].hash.substr(3) === handle) {
-						l[i].classList.add("active");
-						lastLinks.push(l[i]);
-					}
-				}
-			});
+			HB.router.add("/:collection(/:block)?", HB.route);
 
 			// Match routes for initial location.
 			HB.router.match();
+		},
+
+		// Default route.
+		route: function (handle, block) {
+			var c = HB.collections[handle];
+
+			if (c === undefined || c.blocks === undefined || HB.noCache) {
+				c = HB.collections[handle] = new Collection();
+				c.addEventListener("update", HB.update);
+
+				HB.request.get({
+					handle: handle,
+					success: c.load.bind(c),
+					error: HB.fallback
+				});
+			} else {
+
+				// Abort ongoing request
+				// (to prevent unwanted behaviour on slower connections).
+				HB.request.xhr.abort();
+			}
+
+			c.block = block;
+
+			// Remove `.active` form last links.
+			lastLinks.forEach(function (link) {
+				link.classList.remove("active");
+			});
+
+			// Clear `lastLinks` array.
+			lastLinks = [];
+
+			// Make the current links `.active`.
+			for (var i = 0, l = document.links; i < l.length; i++) {
+				if (l[i].hash.substr(3) === handle) {
+					l[i].classList.add("active");
+					lastLinks.push(l[i]);
+				}
+			}
 		},
 
 		// This gets called when a **collection** updates.
@@ -171,7 +174,7 @@
 				descriptor.set = method.set;
 			} else {
 				descriptor.value = method;
-				descriptor.writable = typeof method !== "function";
+				descriptor.writable = (typeof method !== "function");
 			}
 
 			define(object, property, descriptor);
@@ -187,8 +190,6 @@
 
 	// document.registerElement
 	// ------------------------
-
-	
 
 	// This is just a polyfill.
 	if (document.registerElement === undefined) {
@@ -244,7 +245,7 @@
 				for (var j = 0; j < e.length; j++) {
 					register(e[j], customElements[i].prototype);
 
-					if (e[j].attachedCallback !== undefined) {
+					if (typeof e[j].attachedCallback === "function") {
 						e[j].attachedCallback.call(e[j]);
 					}
 				}
@@ -450,9 +451,9 @@
 				this[key] = data[key];
 			}
 
-			this.time = new Date(this.time);
+			this.time = new Date(data.time);
 
-			this.template = window[this.type] ||
+			this.template = window[data.type] ||
 							window.block ||
 							window.default;
 		},
@@ -478,22 +479,25 @@
 	var Router = HB.Router = klass({
 
 		// *Constructor* sets up a listener for hash changes.
-		constructor: function Router() {
+		constructor: function Router(fallback) {
+			this.fallback = fallback || null;
+
 			window.addEventListener("hashchange", this.match.bind(this));
 		},
 
-		// Adds the `route` — with corresponding `callback` — to the router.
+		// Adds the `route` with corresponding `callback` to the router.
 		add$hidden: function (route, callback) {
-			var opt = /\((\/:[a-z]+)\)\?/g;
+			var id = route,
+				opt = /\((\/:[a-z]+)\)\?/g;
 
 			if (opt.test(route)) {
 				route = route.replace(opt, "(?:$1)?");
 			}
 
-			var regExp = new RegExp(route.replace(/:[a-z]+/g, "([a-z0-9-]+)"));
+			var regExp = new RegExp(route.replace(/:[a-z]+/g, "([a-z0-9-]+)"), "i");
 
-			this[route] = callback;
-			this[route].regExp = regExp;
+			this[id] = callback;
+			this[id].regExp = regExp;
 		},
 
 		// This gets called when `location.hash` changes,
@@ -517,7 +521,7 @@
 				}
 			}
 
-			if (fallback && this.fallback !== undefined) {
+			if (fallback && typeof this.fallback === "function") {
 				this.fallback();
 			}
 		}
@@ -539,21 +543,44 @@
 			this.xhr.addEventListener("load", this.load.bind(this));
 		},
 
-		// GET JSON from `this.endpoint` with specified `props`.
-		// (With `handle` being the most common)
-		// Calls `props.success` if all good, else `props.error`.
-		get: function (props) {
+		// Do a `prop.method` request to `this.endpoint` (formats with `prop`).
+		// Can send `prop.data` as `prop.type` (defaults to `application/json`).
+		// Accepts `prop.accept` (defaults to `application/json`).
+		// Returns data as `prop.response` (defaults to `json`).
+		// Calls `prop.success` if all good, else `prop.error`.
+		send: function (prop) {
+			var method = prop.method,
+
+				accept = prop.accept || "application/json",
+				response = prop.response || "json",
+				data = prop.data || null;
+
 			html.classList.add("loading");
 
-			this.accept = props.accept || "application/json";
-			this.success = props.success;
-			this.error = props.error;
-			this.response = props.response || "json";
+			this.success = prop.success;
+			this.error = prop.error;
 
-			this.xhr.open("GET", this.endpoint.format(props));
-			this.xhr.responseType = this.response;
-			this.xhr.setRequestHeader("Accept", this.accept);
-			this.xhr.send();
+			this.xhr.open(method, this.endpoint.format(prop));
+			this.xhr.responseType = response;
+			this.xhr.setRequestHeader("Accept", accept);
+
+			if (method !== "GET" && data !== null) {
+				var type = prop.type || "application/json";
+
+				this.xhr.setRequestHeader("Content-Type", type);
+
+				if (type === "application/json") {
+					data = JSON.stringify(data);
+				}
+			}
+
+			this.xhr.send(data);
+		},
+
+		// Shorthand for GET request.
+		get: function (prop) {
+			prop.method = "GET";
+			this.send(prop);
 		},
 
 		// Response to JSON.

@@ -14,7 +14,7 @@
 	var HA = window.HA = {
 
 		// Current version.
-		version: "0.0.3",
+		version: "0.0.4",
 
 		// REST API endpoint.
 		endpoint: "api/",
@@ -388,8 +388,11 @@
 		// Logout.
 		logout: function () {
 			HA.request.error = null;
+
 			HA.request.xhr.open("HEAD", ":protocol//logout@:host:port:pathname".format(location) + HA.endpoint);
 			HA.request.xhr.send();
+
+			location.reload(true);
 		},
 
 		// Action types.
@@ -426,23 +429,6 @@
 			}
 
 			return false;
-		}
-	});
-
-	// HB.Request
-	// ----------
-
-	// Make `HB.Request` send stuff.
-	Object.defineProperty(HB.Request.prototype, "send", {
-		value: function (params) {
-			html.classList.add("loading");
-
-			this.success = HA.sync;
-			this.error = HA.error;
-
-			this.xhr.open(params.method, this.endpoint, true);
-			this.xhr.setRequestHeader("Content-Type", "application/json");
-			this.xhr.send(JSON.stringify(params.data));
 		}
 	});
 })(this);

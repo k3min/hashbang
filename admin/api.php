@@ -5,7 +5,7 @@
 
 	try {
 		if ($_SERVER['PHP_AUTH_USER'] !== $user && $_SERVER['PHP_AUTH_PW'] !== $password) {
-			header('WWW-Authenticate: Basic');
+			header('WWW-Authenticate: Basic realm="Hashbang Admin"');
 			throw new Exception('Unauthorized', 401);
 		}
 
@@ -35,7 +35,16 @@
 
 			switch ($_SERVER['REQUEST_METHOD']) {
 				case 'POST': {
-					$valid = ['handle', 'title', 'description', 'content', 'type', 'time', 'collectionId', 'blockId'];
+					$valid = [
+						'handle',
+						'title',
+						'description',
+						'content',
+						'type',
+						'time',
+						'collectionId',
+						'blockId'
+					];
 
 					if (!in_array($json->key, $valid)) {
 						throw new Exception('Bad Request', 400);
@@ -92,7 +101,7 @@
 						mkdir('../res/uploads', 0700);
 					}
 
-					$name = sprintf("../res/uploads/%s{$types[$json->type]}", uniqid());
+					$name = "../res/uploads/{uniqid()}{$types[$json->type]}";
 					$data = base64_decode($json->value);
 
 					file_put_contents($name, $data);
