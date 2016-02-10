@@ -64,7 +64,7 @@
 					]);
 
 					if (empty($json->id)) {
-						$json->id = $db->query('SELECT LAST_INSERT_ID()')->fetchColumn();
+						$json->id = 0 + $db->lastInsertId();
 						$refresh = true;
 					}
 
@@ -130,7 +130,7 @@
 			$collection->blocks = [];
 			$collection->url = "#!/{$collection->handle}";
 
-			if (!$response['target'] && isset($json) && $json->type === 'collection' && $json->id === $collection->id) {
+			if (isset($json) && $json->type === 'collection' && $json->id === $collection->id) {
 				$response['target'] = $collection->url;
 			}
 
@@ -139,7 +139,7 @@
 			while ($block = $blocks->fetch(PDO::FETCH_OBJ)) {
 				$block->url = "#!/{$collection->handle}/{$block->handle}";
 
-				if (!$response['target'] && isset($json) && $json->type === 'block' && $json->id === $block->id) {
+				if (isset($json) && $json->type === 'block' && $json->id === $block->id) {
 					$response['target'] = $block->url;
 				}
 

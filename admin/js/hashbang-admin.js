@@ -14,7 +14,7 @@
 	var HA = window.HA = {
 
 		// Current version.
-		version: "0.0.4",
+		version: "0.0.5",
 
 		// REST API endpoint.
 		endpoint: "api/",
@@ -35,6 +35,7 @@
 			});
 
 			HA.upload.init();
+			HA.dialog.init();
 		},
 
 		// Hashbang update handler.
@@ -42,29 +43,35 @@
 			var content = document.querySelector("textarea");
 
 			if (content !== null) {
-				content.addEventListener("keydown", HA.keys, false);
+				content.addEventListener("keydown", HA.textarea, false);
 			}
 		},
 
-		// Input handler.
-		keys: function (event) {
+		// Textarea input handler.
+		textarea: function (event) {
 			var cancel = false;
 
 			switch (event.keyCode) {
-				case 83:
-					if (event.metaKey || event.ctrlKey) {
-						var change = new CustomEvent("change", {
-							detail: this
-						});
 
-						HB.root.dispatchEvent(change);
-
-						cancel = true;
+				// ⌘-S / CTRL-S save.
+				case HA.KEY.S: {
+					if (!(event.metaKey || event.ctrlKey)) {
+						break;
 					}
 
-					break;
+					var change = new CustomEvent("change", {
+						detail: this
+					});
 
-				case 9:
+					HB.root.dispatchEvent(change);
+
+					cancel = true;
+
+					break;
+				}
+
+				// Handle tab.
+				case HA.KEY.TAB: {
 					var a = this.selectionStart,
 						b = this.selectionEnd,
 						t = this.value;
@@ -75,6 +82,7 @@
 					cancel = true;
 
 					break;
+				}
 			}
 
 			if (cancel) {
@@ -156,6 +164,8 @@
 
 				HA.request.send({
 					method: "POST",
+					success: HA.sync,
+					error: HA.error,
 					data: {
 						type: "block",
 						id: HA.block.target.dataset.id,
@@ -241,19 +251,23 @@
 			switch (type) {
 				case HA.TYPE.COLLECTION:
 				case HA.TYPE.TAG:
-				case HA.TYPE.ATTRIBUTE:
+				case HA.TYPE.ATTRIBUTE: {
 					data.key = "handle";
 					data.value = "new-{}".format(type);
 					break;
+				}
 
-				case HA.TYPE.BLOCK:
+				case HA.TYPE.BLOCK: {
 					data.key = "collectionId";
 					data.value = parent;
 					break;
+				}
 			}
 
 			HA.request.send({
 				method: "POST",
+				success: HA.sync,
+				error: HA.error,
 				data: data
 			});
 		},
@@ -272,13 +286,9 @@
 				images: data.images
 			};
 
-			while (overview.firstChild) { overview.removeChild(overview.firstChild); }
-			while (tags.firstChild) { tags.removeChild(tags.firstChild); }
-			while (attributes.firstChild) { attributes.removeChild(attributes.firstChild); }
-
-			overview.appendChild(window.nav.render(data.collections));
-			tags.appendChild(window.datalist.render(data.tags));
-			attributes.appendChild(window.datalist.render(data.attributes));
+			overview.replaceChildren(window.nav.render(data.collections));
+			tags.replaceChildren(window.datalist.render(data.tags));
+			attributes.replaceChildren(window.datalist.render(data.attributes));
 
 			HA.block.init(overview);
 
@@ -315,24 +325,28 @@
 
 			switch (type) {
 				case HA.TYPE.TAG:
-				case HA.TYPE.ATTRIBUTE:
+				case HA.TYPE.ATTRIBUTE: {
 					if (key === "handle" && value === "") {
-						return HA.delete(type, id);
+						return HA.delete(type, id, -1);
 					}
 
 					break;
+				}
 
 				case HA.TYPE.BLOCK_TAG:
-				case HA.TYPE.BLOCK_ATTRIBUTE:
+				case HA.TYPE.BLOCK_ATTRIBUTE: {
 					if (!target.checked) {
 						return HA.delete(type, id, value)
 					}
 
 					break;
+				}
 			}
 
 			HA.request.send({
 				method: "POST",
+				success: HA.sync,
+				error: HA.error,
 				data: {
 					type: type,
 					id: id,
@@ -344,8 +358,8 @@
 
 		// Delete.
 		delete: function (type, id, value) {
-			if (value === undefined && !confirm(HA.strings.delete.format(type))) {
-				return;
+			if (value === -1) {
+				return HA.dialog.show(HA.strings.delete, { type: type, id: id });
 			}
 
 			if (type === HA.TYPE.IMAGE) {
@@ -358,6 +372,8 @@
 
 			HA.request.send({
 				method: "DELETE",
+				success: HA.sync,
+				error: HA.error,
 				data: {
 					type: type,
 					id: id,
@@ -368,10 +384,12 @@
 
 		// File upload.
 		put: function (event) {
-			var result = event.target.result;
+			var result = this.result;
 
 			HA.request.send({
 				method: "PUT",
+				success: HA.sync,
+				error: HA.error,
 				data: {
 					type: result.match(HA.valid)[0],
 					value: result.split(",")[1]
@@ -382,7 +400,108 @@
 		// Error handling...
 		error: function (data) {
 			html.classList.add("error");
-			alert(HA.strings[data.status] || HA.strings.error);
+			HA.dialog.show(HA.strings[data.status] || HA.strings.error);
+		},
+
+		// All things dialog.
+		dialog: {
+
+			// Create event listeners.
+			init: function () {
+				window.addEventListener("keydown", HA.dialog.keys, false);
+				window.dialog.addEventListener("close", HA.dialog.close, false);
+			},
+
+			// `show` wrapper.
+			show: function (message, data) {
+				var dialog = window.dialog;
+
+				if (data !== undefined) {
+					var strings = HA.strings,
+						keys = Object.keys(strings);
+
+					// Future self: this automagically sets the `action`.
+					for (var i in keys) {
+						var key = keys[i];
+
+						if (strings[key].title === message.title) {
+							data.action = key;
+							break;
+						}
+					}
+
+					message.title = message.title.format(data);
+					message.data = JSON.stringify(data).replace(/"/g, "\'");
+				}
+
+				dialog.replaceChildren(window.message.render(message));
+				dialog.show();
+			},
+
+			// `close` event.
+			close: function (event) {
+				var data = this.returnValue;
+
+				if (data === null || data.action === undefined) {
+					return;
+				}
+
+				switch (data.action) {
+					case "delete": {
+						HA.delete(data.type, data.id);
+						break;
+					}
+				}
+			},
+
+			// Input handler.
+			keys: function (event) {
+				var cancel = false,
+					dialog = window.dialog;
+
+				if (!dialog.open) {
+					return;
+				}
+
+				switch (event.keyCode) {
+
+					// Esc to close dialog.
+					case HA.KEY.ESC: {
+						dialog.close();
+						cancel = true;
+
+						break;
+					}
+
+					// Keep focus in dialog.
+					case HA.KEY.TAB: {
+						var target = event.target,
+							shift = event.shiftKey,
+							buttons = dialog.querySelectorAll("button"),
+							first = buttons[0],
+							last = buttons[buttons.length - 1];
+
+						if ((target === last && !shift) || target === document.body) {
+							first.focus();
+							cancel = true;
+						} else if (target === first && shift) {
+							last.focus();
+							cancel = true;
+						}
+
+						break;
+					}
+				}
+
+				if (cancel) {
+					event.preventDefault();
+				}
+			},
+
+			// Action types.
+			TYPE: {
+				DELETE: 0
+			}
 		},
 
 		// Logout.
@@ -406,13 +525,36 @@
 			IMAGE: "image"
 		},
 
+		KEY: {
+			TAB: 9,
+			ESC: 27,
+			S: 83
+		},
+
 		// Strings.
 		strings: {
-			delete:	"Are you sure you want to delete this {}? This action cannot be undone!",
-			error:	"Something went wrong!",
-			400:	"Something went seriously wrong!",
-			401:	"You are not authorized!",
-			500:	"Something went wrong on the server!"
+
+			delete: {
+				title: "Are you sure you want to delete this :type?",
+				description: "This action cannot be undone!"
+			},
+
+			error: {
+				title: "Something went wrong!",
+				description: "Please try again."
+			},
+
+			400: {
+				title: "Something went seriously wrong!"
+			},
+
+			401: {
+				title: "You are not authorized!"
+			},
+
+			500: {
+				title: "Something went wrong on the server!"
+			}
 		}
 	};
 
@@ -431,4 +573,52 @@
 			return false;
 		}
 	});
+
+	// Dialog
+	// ------
+
+	// `HTMLDialogElement` polyfill.
+	if (window.HTMLDialogElement === undefined) {
+		window.HTMLDialogElement = HTMLElement.extend({
+			constructor: function HTMLDialogElement() {
+				console.error("Illegal constructor");
+			}
+		});
+
+		document.registerElement("dialog", {
+			prototype: Object.create(HTMLElement.prototype, {
+
+				returnValue: {
+					writable: true,
+					value: null
+				},
+
+				open: {
+					get: function () { return (this.getAttribute("open") === "open"); },
+					set: function (value) {
+						if (value) {
+							this.setAttribute("open", "open");
+						} else {
+							this.removeAttribute("open");
+						}
+					}
+				},
+
+				show: { value: function () {
+					this.returnValue = null;
+					this.open = true;
+				}},
+
+				close: { value: function (returnValue) {
+					if (returnValue !== undefined) {
+						this.returnValue = returnValue;
+					}
+
+					this.dispatchEvent(new CustomEvent("close"));
+
+					this.open = false;
+				}}
+			})
+		});
+	}
 })(this);

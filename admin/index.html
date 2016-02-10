@@ -13,6 +13,7 @@
 		<footer id="upload"></footer>
 		<datalist id="tags"></datalist>
 		<datalist id="attributes"></datalist>
+		<dialog id="dialog"></dialog>
 		<template id="nav" is="hb-template">
 			<dl>
 				{% this.forEach(function (collection) { %}
@@ -35,6 +36,22 @@
 			<option>{{ item.title }}</option>
 			{% }); %}
 		</template>
+		<template id="message" is="hb-template">
+			<div>
+				<h1>{{ this.title }}</h1>
+				{% if (this.description) { %}
+				<p>{{ this.description }}</p>
+				{% } %}
+				<div class="row">
+					{% if (this.data) { %}
+					<button onclick="dialog.close();" autofocus>Cancel</button>
+					<button onclick="dialog.close({{ this.data }});">OK</button>
+					{% } else { %}
+					<button onclick="dialog.close();" autofocus>OK</button>
+					{% } %}
+				</div>
+			</div>
+		</template>
 		<template id="collection" is="hb-template">
 			<div class="input after">
 				<label for="title">Title</label>
@@ -52,7 +69,7 @@
 				<label for="type">Type</label>
 				<input data-type="collection" data-id="{{ this.id }}" name="type" value="{{ this.type }}" maxlength="16" pattern="[a-z0-9-]+" id="type" class="code" required>
 			</div>
-			<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.COLLECTION, {{ this.id }});" class="delete">
+			<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.COLLECTION, {{ this.id }}, -1);" class="delete">
 		</template>
 		<template id="block" is="hb-template">
 			{% this.blocks.forEach(function (block) { %}
@@ -79,7 +96,7 @@
 					{% HA.metadata.images.forEach(function (image) { %}
 					<li>
 						<img src="{{ image }}">
-						<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.IMAGE, \'{{ image }}\');" class="delete">
+						<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.IMAGE, \'{{ image }}\', -1);" class="delete">
 					</li>
 					{% }); %}
 				</ul>
@@ -120,7 +137,7 @@
 				<label for="type">Type</label>
 				<input data-type="block" data-id="{{ block.id }}" name="type" value="{{ block.type }}" maxlength="16" pattern="[a-z0-9-]+" id="type" class="code" required>
 			</div>
-			<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.BLOCK, {{ block.id }});" class="delete">
+			<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.BLOCK, {{ block.id }}, -1);" class="delete">
 			{% }); %}
 		</template>
 		<script>

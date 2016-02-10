@@ -5,11 +5,39 @@
 @keyframes fade { to { opacity: 0; } }
 @-webkit-keyframes fade { to { opacity: 0; } }
 
-body, dl, input, ul, textarea { margin: 0; }
-input, textarea, select, ul { padding: 0; }
-div.input, input.delete, div.images { margin: 1em 0; }
+@keyframes focus {
+	from { box-shadow: 0 0 2px 4px transparent; }
+	to { box-shadow: 0 0 0 1px #000; }
+}
 
-html, input, textarea, select { background: #fff; font: 200 18px/1.5 "Ek Mukta"; }
+@-webkit-keyframes focus {
+	from { box-shadow: 0 0 2px 4px transparent; }
+	to { box-shadow: 0 0 0 1px #000; }
+}
+
+body, dl, input, button, ul, textarea, dialog h1, dialog p, dialog div.input { margin: 0; }
+input, button, textarea, select, ul { padding: 0; }
+div.input, input.delete, div.images { margin: 1em 0; }
+dialog, body, div.images ul, div.row, div.input { display: flex; display: -webkit-flex; }
+html.move dd, #upload:not(.target), input.delete:not(:hover) { opacity: 0.5; }
+html, input, button, textarea, select, dialog > div { background: #fff; }
+html, input, button, textarea, select { font: 200 18px/1.5 "Ek Mukta"; }
+
+dialog {
+	z-index: 5;
+	position: fixed;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	justify-content: center;
+	-webkit-justify-content: center;
+	text-align: center;
+	background: rgba(255, 255, 255, 0.5);
+}
+
+dialog > div { padding: 1em; border: 1px solid #bdc3c7; }
+dialog h1 { font-size: 1em; }
+dialog div.row { margin: 0.75em -0.75em -0.75em; }
+dialog button { margin: 0.25em; }
 
 /* Hints */
 div.input label {
@@ -22,7 +50,6 @@ div.input label {
 div.input {
 	position: relative;
 	border-bottom: 1px solid #bdc3c7;
-	display: flex; display: -webkit-flex;
 	transition: border-bottom-color 0.1s ease-in-out;
 	-webkit-transition: border-bottom-color 0.1s ease-in-out;
 }
@@ -38,29 +65,26 @@ div.input {
 }
 
 /* Text */
-html, input, textarea, select, a, div.input:hover label { color: #2c3e50; }
+html, input, textarea, select, a, div.input:hover label, button { color: #2c3e50; }
 div.input:hover { border-bottom-color: #2c3e50; }
 
-input, select { height: 1.5em; }
+input, select, button { height: 1.5em; }
 
 input.delete, input:invalid { color: #c0392b; }
 
+dd,
+form,
 input.delete {
-	border: 1px solid #c0392b;
-	cursor: pointer;
 	transition: opacity 0.1s ease-in-out;
 	-webkit-transition: opacity 0.1s ease-in-out;
 }
 
-input.delete:not(:hover) { opacity: 0.5; }
-
-a, label, select, input[type=checkbox] { cursor: pointer; }
-a, label, input, textarea, select, img { display: block; }
+a, label, select, input[type=checkbox], button, input.delete { cursor: pointer; }
+a, label, input, button, textarea, select, img { display: block; }
 dd, label, input.code, a.collection { font-size: 14px; }
-input.h1 { font-weight: 400; font-size: 22px; }
+input.h1 { font-size: 22px; }
 
 html { cursor: default; }
-body { display: flex; display: -webkit-flex; }
 
 a { text-decoration: none; }
 a.create {
@@ -77,26 +101,15 @@ a.block { margin-top: -1.5em; }
 
 li { list-style: none; }
 
-dt.target { font-weight: 400; }
+dt.target, input.h1, dialog h1 { font-weight: 400; }
 dt:not(:first-of-type) { margin-top: 1em; }
 
-html.move dd { opacity: 0.5; }
-
-dd {
-	margin-left: 1em;
-	transition: opacity 0.1s ease-in-out;
-	-webkit-transition: opacity 0.1s ease-in-out;
-}
-
+dd { margin-left: 1em; }
 dl > *:last-child { margin-bottom: 1em; }
 
 nav { width: 192px; margin: 1em; }
 
-form {
-	width: 480px;
-	transition: opacity 0.1s ease-in-out;
-	-webkit-transition: opacity 0.1s ease-in-out;
-}
+form { width: 480px; }
 
 html::before { /* Preload images */
 	display: none;
@@ -110,6 +123,7 @@ html::after {
 	background: url(../res/done.svg) no-repeat 50%;
 	position: fixed;
 	pointer-events: none;
+	z-index: 10;
 }
 
 html:not(.loading):not(.error)::after {
@@ -124,6 +138,7 @@ html.error::after { background-image: url(../res/error.svg); }
 	background: #fff url(../res/upload.svg) no-repeat 50%;
 	background-size: 48px;
 	position: fixed;
+	z-index: 2;
 	left: 0; bottom: -128px;
 	width: 100%; height: 128px;
 	transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
@@ -135,17 +150,21 @@ html.upload #upload {
 	-webkit-transform: translateY(-128px);
 }
 
-#upload:not(.target) {
-	opacity: 0.5;
-}
-
-input, textarea, select {
+input, textarea, select, button {
 	-webkit-appearance: none;
 	border: none;
 	flex: 1; -webkit-flex: 1;
 	outline: none;
 	width: 100%;
 	tab-size: 4;
+}
+
+input.delete { border: 1px solid #c0392b; }
+button { border: 1px solid #2c3e50; }
+
+button:focus, button:active {
+	animation: focus 0.2s ease-in-out forwards;
+	-webkit-animation: focus 0.2s ease-in-out forwards;
 }
 
 input[type=checkbox] { background: url(../res/done-empty.svg) no-repeat 50%; }
@@ -169,13 +188,12 @@ input.view:not(:checked) + textarea {
 
 div.input:not(.after) { flex-direction: column; -webkit-flex-direction: column; }
 
-div.after {
-	flex-direction: row-reverse; -webkit-flex-direction: row-reverse;
-	justify-content: flex-end; -webkit-justify-content: flex-end;
-	align-items: center; -webkit-align-items: center;
-}
+div.after, dialog div.row { justify-content: flex-end; -webkit-justify-content: flex-end; }
 
-div.row { display: flex; display: -webkit-flex; }
+div.after, dialog { align-items: center; -webkit-align-items: center; }
+
+div.after { flex-direction: row-reverse; -webkit-flex-direction: row-reverse; }
+
 div.row input[type=checkbox] {
 	width: 1.5em;
 	flex: 0 auto; -webkit-flex: 0 auto;
@@ -183,7 +201,6 @@ div.row input[type=checkbox] {
 
 div.images { position: relative; }
 div.images ul {
-	display: flex; display: -webkit-flex;
 	flex-wrap: wrap; -webkit-flex-wrap: wrap;
 	align-items: flex-start; -webkit-align-items: flex-start;
 	height: 15em;
@@ -235,5 +252,5 @@ div.images input.delete {
 div.images li:hover input.delete { background-image: url(../res/error-outline.svg); }
 div.images input.delete:hover { background-image: url(../res/error.svg) !important; }
 
+hb-template, dialog:not([open]) { display: none; }
 hb-collection { display: block; }
-hb-template { display: none; }
