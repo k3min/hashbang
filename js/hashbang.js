@@ -624,45 +624,41 @@
 	// `HTMLDialogElement` polyfill.
 	if (window.HTMLDialogElement === undefined) {
 		window.HTMLDialogElement = HTMLElement.extend({
+			returnValue: "",
+
 			constructor: function HTMLDialogElement() {
 				console.error("Illegal constructor");
+			},
+
+			open: {
+				get: function () { return this.hasAttribute("open"); },
+				set: function (value) {
+					if (value) {
+						this.setAttribute("open", "");
+					} else {
+						this.removeAttribute("open");
+					}
+				}
+			},
+
+			show: function () {
+				this.open = true;
+			},
+
+			close: function (returnValue) {
+				if (returnValue !== undefined) {
+					this.returnValue = returnValue;
+				}
+
+				this.dispatchEvent(new CustomEvent("close"));
+
+				this.open = false;
+				this.returnValue = "";
 			}
 		});
 
 		document.registerElement("dialog", {
-			prototype: clone(HTMLElement.prototype, {
-
-				returnValue: {
-					writable: true,
-					value: ""
-				},
-
-				open: {
-					get: function () { return this.hasAttribute("open"); },
-					set: function (value) {
-						if (value) {
-							this.setAttribute("open", "");
-						} else {
-							this.removeAttribute("open");
-						}
-					}
-				},
-
-				show: { value: function () {
-					this.open = true;
-				}},
-
-				close: { value: function (returnValue) {
-					if (returnValue !== undefined) {
-						this.returnValue = returnValue;
-					}
-
-					this.dispatchEvent(new CustomEvent("close"));
-
-					this.open = false;
-					this.returnValue = "";
-				}}
-			})
+			prototype: clone(HTMLDialogElement.prototype)
 		});
 	}
 

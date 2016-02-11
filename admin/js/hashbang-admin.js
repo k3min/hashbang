@@ -471,15 +471,13 @@
 	// ---------
 
 	// All things dialog.
-	HA.Dialog = document.registerElement("ha-dialog", {
+	document.registerElement("ha-dialog", {
 		prototype: Object.create(HTMLDialogElement.prototype, {
 
 			// Create event listeners.
 			attachedCallback: { value: function () {
-				window.addEventListener("keydown", this.keys.bind(this), false);
-
 				this.addEventListener("close", this.callback, false);
-				this.addEventListener("click", this.click, false);
+				window.addEventListener("keydown", this.keys.bind(this), false);
 			}},
 
 			// `show` wrapper.
@@ -535,17 +533,6 @@
 						break;
 					}
 				}
-			}},
-
-			// Click handler.
-			click: { value: function (event) {
-				if (event.target !== this) {
-					return;
-				}
-
-				this.close();
-
-				event.preventDefault();
 			}},
 
 			// Input handler.
