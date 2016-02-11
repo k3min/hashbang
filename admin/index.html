@@ -13,7 +13,7 @@
 		<footer id="upload"></footer>
 		<datalist id="tags"></datalist>
 		<datalist id="attributes"></datalist>
-		<dialog id="dialog"></dialog>
+		<dialog id="dialog" is="ha-dialog"></dialog>
 		<template id="nav" is="hb-template">
 			<dl>
 				{% this.forEach(function (collection) { %}
@@ -44,10 +44,15 @@
 				{% } %}
 				<div class="row">
 					{% if (this.data) { %}
-					<button onclick="dialog.close();" autofocus>Cancel</button>
-					<button onclick="dialog.close({{ this.data }});">OK</button>
+					{% this.buttons.forEach(function (button) { %}
+					{% if (button.action) { %}
+					<button onclick="HA.dialog.close(\'{{ this.data }}\');">{{ button.title }}</button>
 					{% } else { %}
-					<button onclick="dialog.close();" autofocus>OK</button>
+					<button onclick="HA.dialog.close();" autofocus>{{ button.title }}</button>
+					{% } %}
+					{% }.bind(this)); %}
+					{% } else { %}
+					<button onclick="HA.dialog.close();" autofocus>OK</button>
 					{% } %}
 				</div>
 			</div>

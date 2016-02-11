@@ -16,7 +16,7 @@
 }
 
 body, dl, input, button, ul, textarea, dialog h1, dialog p, dialog div.input { margin: 0; }
-input, button, textarea, select, ul { padding: 0; }
+input, button, textarea, select, ul, dialog { padding: 0; }
 div.input, input.delete, div.images { margin: 1em 0; }
 dialog, body, div.images ul, div.row, div.input { display: flex; display: -webkit-flex; }
 html.move dd, #upload:not(.target), input.delete:not(:hover) { opacity: 0.5; }
@@ -32,12 +32,13 @@ dialog {
 	-webkit-justify-content: center;
 	text-align: center;
 	background: rgba(255, 255, 255, 0.5);
+	border: none;
 }
 
-dialog > div { padding: 1em; border: 1px solid #bdc3c7; }
+dialog > div { padding: 2em; border: 1px solid #bdc3c7; }
 dialog h1 { font-size: 1em; }
-dialog div.row { margin: 0.75em -0.75em -0.75em; }
-dialog button { margin: 0.25em; }
+dialog div.row { margin: 1em -1.5em -1.5em; }
+dialog button { margin: 0.5em; }
 
 /* Hints */
 div.input label {
@@ -65,7 +66,7 @@ div.input {
 }
 
 /* Text */
-html, input, textarea, select, a, div.input:hover label, button { color: #2c3e50; }
+html, input, textarea, select, a, div.input:hover label, button, dialog { color: #2c3e50; }
 div.input:hover { border-bottom-color: #2c3e50; }
 
 input, select, button { height: 1.5em; }

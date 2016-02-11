@@ -147,7 +147,8 @@
 	// -----
 
 	// Create a new class. Add `$static` to a method name to make it *static*.
-	// `$hidden` makes it non-enumerable. You can even define getters/setters.
+	// `$virtual` makes it writable. `$private` makes it non-enumerable.
+	// You can even define getters/setters.
 	var klass = window.klass = function (methods) {
 		var base = methods.constructor,
 			self = (this && this.prototype) || false;
@@ -161,7 +162,7 @@
 			var method = methods[i],
 				property = i.split("$")[0],
 				object = /\$static/.test(i) ? base : base.prototype,
-				descriptor = { enumerable: !/\$hidden|^constructor/.test(i) };
+				descriptor = { enumerable: !/\$private|^constructor/.test(i) };
 
 			if (method !== null && (typeof method.get === "function" ||
 			                        typeof method.set === "function")) {
@@ -169,7 +170,7 @@
 				descriptor.set = method.set;
 			} else {
 				descriptor.value = method;
-				descriptor.writable = (typeof method !== "function");
+				descriptor.writable = (/\$virtual/.test(i) || typeof method !== "function");
 			}
 
 			define(object, property, descriptor);
@@ -476,7 +477,7 @@
 		},
 
 		// Adds the `route` with corresponding `callback` to the router.
-		add$hidden: function (route, callback) {
+		add$private: function (route, callback) {
 			var id = route,
 				opt = /\((\/:[a-z]+)\)\?/g;
 
@@ -492,7 +493,7 @@
 
 		// This gets called when `location.hash` changes,
 		// and tries to do something with the defined routes.
-		match$hidden: function () {
+		match$private: function () {
 			var fallback = true;
 
 			for (var i in this) {
@@ -598,7 +599,12 @@
 		fallback: function (data) {
 			html.classList.remove("loading");
 
-			if (data.status === undefined) {
+			if (data === undefined || data === null) {
+				data = {
+					status: this.xhr.status,
+					message: this.xhr.statusText
+				};
+			} else if (data.status === undefined) {
 				data.status = -1;
 			}
 
@@ -606,9 +612,59 @@
 				this.error(data);
 			}
 
-			console.error(data);
+			if (this.debug) {
+				console.error(data);
+			}
 		}
 	});
+
+	// Dialog
+	// ------
+
+	// `HTMLDialogElement` polyfill.
+	if (window.HTMLDialogElement === undefined) {
+		window.HTMLDialogElement = HTMLElement.extend({
+			constructor: function HTMLDialogElement() {
+				console.error("Illegal constructor");
+			}
+		});
+
+		document.registerElement("dialog", {
+			prototype: clone(HTMLElement.prototype, {
+
+				returnValue: {
+					writable: true,
+					value: ""
+				},
+
+				open: {
+					get: function () { return this.hasAttribute("open"); },
+					set: function (value) {
+						if (value) {
+							this.setAttribute("open", "");
+						} else {
+							this.removeAttribute("open");
+						}
+					}
+				},
+
+				show: { value: function () {
+					this.open = true;
+				}},
+
+				close: { value: function (returnValue) {
+					if (returnValue !== undefined) {
+						this.returnValue = returnValue;
+					}
+
+					this.dispatchEvent(new CustomEvent("close"));
+
+					this.open = false;
+					this.returnValue = "";
+				}}
+			})
+		});
+	}
 
 	// Helpers
 	// -------

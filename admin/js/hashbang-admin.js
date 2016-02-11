@@ -14,7 +14,7 @@
 	var HA = window.HA = {
 
 		// Current version.
-		version: "0.0.5",
+		version: "0.0.6",
 
 		// REST API endpoint.
 		endpoint: "api/",
@@ -24,6 +24,8 @@
 
 		// Call this to fire up Hashbang Admin.
 		main: function () {
+
+			HA.dialog = window.dialog;
 
 			// Handles HTTP requests.
 			HA.request = new HB.Request(HA.endpoint);
@@ -35,7 +37,6 @@
 			});
 
 			HA.upload.init();
-			HA.dialog.init();
 		},
 
 		// Hashbang update handler.
@@ -359,7 +360,7 @@
 		// Delete.
 		delete: function (type, id, value) {
 			if (value === -1) {
-				return HA.dialog.show(HA.strings.delete, { type: type, id: id });
+				return HA.dialog.render(HA.message.delete, { type: type, id: id });
 			}
 
 			if (type === HA.TYPE.IMAGE) {
@@ -400,108 +401,7 @@
 		// Error handling...
 		error: function (data) {
 			html.classList.add("error");
-			HA.dialog.show(HA.strings[data.status] || HA.strings.error);
-		},
-
-		// All things dialog.
-		dialog: {
-
-			// Create event listeners.
-			init: function () {
-				window.addEventListener("keydown", HA.dialog.keys, false);
-				window.dialog.addEventListener("close", HA.dialog.close, false);
-			},
-
-			// `show` wrapper.
-			show: function (message, data) {
-				var dialog = window.dialog;
-
-				if (data !== undefined) {
-					var strings = HA.strings,
-						keys = Object.keys(strings);
-
-					// Future self: this automagically sets the `action`.
-					for (var i in keys) {
-						var key = keys[i];
-
-						if (strings[key].title === message.title) {
-							data.action = key;
-							break;
-						}
-					}
-
-					message.title = message.title.format(data);
-					message.data = JSON.stringify(data).replace(/"/g, "\'");
-				}
-
-				dialog.replaceChildren(window.message.render(message));
-				dialog.show();
-			},
-
-			// `close` event.
-			close: function (event) {
-				var data = this.returnValue;
-
-				if (data === null || data.action === undefined) {
-					return;
-				}
-
-				switch (data.action) {
-					case "delete": {
-						HA.delete(data.type, data.id);
-						break;
-					}
-				}
-			},
-
-			// Input handler.
-			keys: function (event) {
-				var cancel = false,
-					dialog = window.dialog;
-
-				if (!dialog.open) {
-					return;
-				}
-
-				switch (event.keyCode) {
-
-					// Esc to close dialog.
-					case HA.KEY.ESC: {
-						dialog.close();
-						cancel = true;
-
-						break;
-					}
-
-					// Keep focus in dialog.
-					case HA.KEY.TAB: {
-						var target = event.target,
-							shift = event.shiftKey,
-							buttons = dialog.querySelectorAll("button"),
-							first = buttons[0],
-							last = buttons[buttons.length - 1];
-
-						if ((target === last && !shift) || target === document.body) {
-							first.focus();
-							cancel = true;
-						} else if (target === first && shift) {
-							last.focus();
-							cancel = true;
-						}
-
-						break;
-					}
-				}
-
-				if (cancel) {
-					event.preventDefault();
-				}
-			},
-
-			// Action types.
-			TYPE: {
-				DELETE: 0
-			}
+			HA.dialog.render(HA.message[data.status] || HA.message.error);
 		},
 
 		// Logout.
@@ -525,23 +425,32 @@
 			IMAGE: "image"
 		},
 
+		// Key codes.
 		KEY: {
 			TAB: 9,
 			ESC: 27,
 			S: 83
 		},
 
-		// Strings.
-		strings: {
+		// Messages.
+		message: {
 
 			delete: {
 				title: "Are you sure you want to delete this :type?",
-				description: "This action cannot be undone!"
+				description: "This action cannot be undone!",
+				buttons: [
+					{ title: "Cancel", action: false },
+					{ title: "OK", action: true }
+				]
 			},
 
 			error: {
 				title: "Something went wrong!",
-				description: "Please try again."
+				description: "Please try again.",
+				buttons: [
+					{ title: "Reload", action: true },
+					{ title: "OK", action: false }
+				]
 			},
 
 			400: {
@@ -558,6 +467,136 @@
 		}
 	};
 
+	// HA.Dialog
+	// ---------
+
+	// All things dialog.
+	HA.Dialog = document.registerElement("ha-dialog", {
+		prototype: Object.create(HTMLDialogElement.prototype, {
+
+			// Create event listeners.
+			attachedCallback: { value: function () {
+				window.addEventListener("keydown", this.keys.bind(this), false);
+
+				this.addEventListener("close", this.callback, false);
+				this.addEventListener("click", this.click, false);
+			}},
+
+			// `show` wrapper.
+			render: { value: function (message, data) {
+				if (message.buttons !== undefined) {
+					var messages = HA.message,
+						keys = Object.keys(messages);
+
+					if (data === undefined) {
+						data = {};
+					}
+
+					// Future self: this automagically sets the `action`.
+					for (var i in keys) {
+						var key = keys[i];
+
+						if (messages[key].title === message.title) {
+							data.action = key;
+							break;
+						}
+					}
+
+					message.title = message.title.format(data);
+					message.data = JSON.stringify(data).replace(/"/g, "\\'");
+				}
+
+				this.replaceChildren(window.message.render(message));
+				this.show();
+			}},
+
+			// `close` event handler.
+			callback: { value: function () {
+				var data = this.returnValue.replace(/\'/g, "\"");
+
+				if (data === "") {
+					return;
+				}
+
+				data = JSON.parse(data);
+
+				if (data.action === undefined) {
+					return;
+				}
+
+				switch (data.action) {
+					case "delete": {
+						HA.delete(data.type, data.id);
+						break;
+					}
+
+					case "error": {
+						location.reload(true);
+						break;
+					}
+				}
+			}},
+
+			// Click handler.
+			click: { value: function (event) {
+				if (event.target !== this) {
+					return;
+				}
+
+				this.close();
+
+				event.preventDefault();
+			}},
+
+			// Input handler.
+			keys: { value: function (event) {
+				var cancel = false;
+
+				if (!this.open) {
+					return;
+				}
+
+				switch (event.keyCode) {
+
+					// Esc to close dialog.
+					case HA.KEY.ESC: {
+						this.close();
+						cancel = true;
+
+						break;
+					}
+
+					// Keep focus in dialog.
+					case HA.KEY.TAB: {
+						var target = event.target,
+							shift = event.shiftKey,
+							buttons = this.querySelectorAll("button"),
+							first = buttons[0],
+							last = buttons[buttons.length - 1],
+							body = (target === document.body);
+
+						if ((target === last || body) && !shift) {
+							first.focus();
+							cancel = true;
+						} else if ((target === first || body) && shift) {
+							last.focus();
+							cancel = true;
+						}
+
+						break;
+					}
+				}
+
+				if (cancel) {
+					event.preventDefault();
+				}
+			}}
+		}),
+
+		// *Base* element.
+		extends: "dialog"
+	});
+
 	// Object
 	// ------
 
@@ -573,52 +612,4 @@
 			return false;
 		}
 	});
-
-	// Dialog
-	// ------
-
-	// `HTMLDialogElement` polyfill.
-	if (window.HTMLDialogElement === undefined) {
-		window.HTMLDialogElement = HTMLElement.extend({
-			constructor: function HTMLDialogElement() {
-				console.error("Illegal constructor");
-			}
-		});
-
-		document.registerElement("dialog", {
-			prototype: Object.create(HTMLElement.prototype, {
-
-				returnValue: {
-					writable: true,
-					value: null
-				},
-
-				open: {
-					get: function () { return (this.getAttribute("open") === "open"); },
-					set: function (value) {
-						if (value) {
-							this.setAttribute("open", "open");
-						} else {
-							this.removeAttribute("open");
-						}
-					}
-				},
-
-				show: { value: function () {
-					this.returnValue = null;
-					this.open = true;
-				}},
-
-				close: { value: function (returnValue) {
-					if (returnValue !== undefined) {
-						this.returnValue = returnValue;
-					}
-
-					this.dispatchEvent(new CustomEvent("close"));
-
-					this.open = false;
-				}}
-			})
-		});
-	}
 })(this);
