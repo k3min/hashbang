@@ -482,6 +482,8 @@
 
 			// `show` wrapper.
 			render: { value: function (message, data) {
+				message = Object.create(message);
+
 				if (message.buttons !== undefined) {
 					var messages = HA.message,
 						keys = Object.keys(messages);
@@ -505,6 +507,7 @@
 				}
 
 				this.replaceChildren(window.message.render(message));
+
 				this.show();
 			}},
 

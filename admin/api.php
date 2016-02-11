@@ -101,7 +101,7 @@
 						mkdir('../res/uploads', 0700);
 					}
 
-					$name = "../res/uploads/{uniqid()}{$types[$json->type]}";
+					$name = sprintf("../res/uploads/%s{$types[$json->type]}", uniqid());
 					$data = base64_decode($json->value);
 
 					file_put_contents($name, $data);
