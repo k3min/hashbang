@@ -2,8 +2,11 @@
 @font-face { src: url(../res/ek-mukta-400.woff); font-family: "Ek Mukta"; font-weight: 400; }
 @font-face { src: url(../res/mplus-1mn-200.woff); font-family: "M+ 1mn"; font-weight: 200; }
 
-@keyframes fade { to { opacity: 0; } }
-@-webkit-keyframes fade { to { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@-webkit-keyframes fade-out { to { opacity: 0; } }
+
+@keyframes fade-in { 0% { opacity: 0; } }
+@-webkit-keyframes fade-in { 0% { opacity: 0; } }
 
 @keyframes focus {
 	from { box-shadow: 0 0 2px 4px transparent; }
@@ -24,7 +27,7 @@ html, input, button, textarea, select, dialog > div { background: #fff; }
 html, input, button, textarea, select { font: 200 18px/1.5 "Ek Mukta"; }
 
 dialog {
-	z-index: 5;
+	z-index: 10;
 	position: fixed;
 	left: 0; top: 0;
 	width: 100%; height: 100%;
@@ -33,9 +36,11 @@ dialog {
 	text-align: center;
 	background: rgba(255, 255, 255, 0.5);
 	border: none;
+	animation: fade-in 0.2s ease-in-out forwards;
+	-webkit-animation: fade-in 0.2s ease-in-out forwards;
 }
 
-dialog > div { padding: 2em; border: 1px solid #bdc3c7; }
+dialog > div { padding: 2em; border: 1px solid #bdc3c7; margin: 1em; }
 dialog h1 { font-size: 1em; }
 dialog div.row { margin: 1em -1.5em -1.5em; }
 dialog button { margin: 0.5em; }
@@ -55,7 +60,7 @@ div.input {
 	-webkit-transition: border-bottom-color 0.1s ease-in-out;
 }
 
-*.draggable::before {
+*.draggable:before {
 	content: "";
 	width: 1.5em;
 	height: 1.5em;
@@ -108,38 +113,43 @@ dt:not(:first-of-type) { margin-top: 1em; }
 dd { margin-left: 1em; }
 dl > *:last-child { margin-bottom: 1em; }
 
-nav { width: 192px; margin: 1em; }
+nav {
+	width: 240px;
+	padding: 1em;
+	box-sizing: border-box;
+}
 
 form { width: 480px; }
 
-html::before { /* Preload images */
+html:before { /* Preload images */
 	display: none;
 	content: url(../res/done.svg) url(../res/error.svg);
 }
 
-html::after {
+html:after {
 	left: 0; top: 0;
 	width: 1.5em; height: 1.5em;
 	content: "";
 	background: url(../res/done.svg) no-repeat 50%;
 	position: fixed;
 	pointer-events: none;
-	z-index: 10;
+	z-index: 100;
 }
 
-html:not(.loading):not(.error)::after {
-	animation: fade 1s linear forwards;
-	-webkit-animation: fade 1s linear forwards;
+html:not(.loading):not(.error):after {
+	animation: fade-out 1s linear forwards;
+	-webkit-animation: fade-out 1s linear forwards;
 }
 
-html.loading::after { background-image: url(../res/loading.svg); }
-html.error::after { background-image: url(../res/error.svg); }
+html.loading:after { background-image: url(../res/loading.svg); }
+html.error:after { background-image: url(../res/error.svg); }
 
 #upload {
 	background: #fff url(../res/upload.svg) no-repeat 50%;
-	background-size: 48px;
+	background-size: 1.334em;
 	position: fixed;
-	z-index: 2;
+	z-index: 4;
+	font-size: 2em;
 	left: 0; bottom: -128px;
 	width: 100%; height: 128px;
 	transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
@@ -154,12 +164,14 @@ html.upload #upload {
 input, textarea, select, button {
 	-webkit-appearance: none;
 	border: none;
+	border-radius: 0;
 	flex: 1; -webkit-flex: 1;
 	outline: none;
 	width: 100%;
 	tab-size: 4;
 }
 
+textarea { -webkit-overflow-scrolling: touch; }
 input.delete { border: 1px solid #c0392b; }
 button { border: 1px solid #2c3e50; }
 
@@ -206,23 +218,24 @@ div.images ul {
 	align-items: flex-start; -webkit-align-items: flex-start;
 	height: 15em;
 	overflow: auto;
+	-webkit-overflow-scrolling: touch;
 }
 
-div.images::before,
-div.images::after {
+div.images:before,
+div.images:after {
 	content: "";
 	width: 100%; height: 0.5em;
 	position: absolute;
 	left: 0;
 }
 
-div.images::before {
+div.images:before {
 	z-index: 1;
 	top: 1.16666em;
 	background: linear-gradient(to bottom, rgba(255,255,255, 1), rgba(255,255,255, 0));
 }
 
-div.images::after {
+div.images:after {
 	bottom: 0;
 	background: linear-gradient(to top, rgba(255,255,255, 1), rgba(255,255,255, 0));
 }
@@ -253,5 +266,58 @@ div.images input.delete {
 div.images li:hover input.delete { background-image: url(../res/error-outline.svg); }
 div.images input.delete:hover { background-image: url(../res/error.svg) !important; }
 
-hb-template, dialog:not([open]) { display: none; }
+hb-template, dialog:not([open]), #toggle { display: none; }
 hb-collection { display: block; }
+
+@media screen and (max-width: 640px) {
+	body, html { height: 100%; overflow: hidden; }
+	nav, form { overflow: auto; -webkit-overflow-scrolling: touch; }
+
+	#toggle {
+		display: block;
+		position: fixed;
+		z-index: 5;
+		left: 0;
+		bottom: 0;
+		width: 1.5em;
+		font-size: 1.5em;
+		background-size: 1.334em;
+		background-image: url(../res/settings-outline.svg);
+	}
+
+	#toggle:after {
+		content: "";
+		position: fixed;
+		left: 0; top: 0;
+		width: 100%; height: 100%;
+		background: rgba(255, 255, 255, 0.5);
+		transition: opacity 0.2s ease-in-out;
+		-webkit-transition: opacity 0.2s ease-in-out;
+	}
+
+	#toggle:checked { background-image: url(../res/settings.svg); }
+	#toggle:not(:checked):after { opacity: 0; pointer-events: none; }
+
+	#toggle:checked + nav,
+	#toggle:checked:after {
+		transform: translateX(240px);
+		-webkit-transform: translateX(240px);
+	}
+
+	nav {
+		position: fixed;
+		left: -240px; top: 0; bottom: 0;
+		z-index: 3;
+		background: #fff;
+		transition: transform 0.2s ease-in-out;
+		-webkit-transition: -webkit-transform 0.2s ease-in-out;
+		border-right: 1px solid #bdc3c7;
+		padding-bottom: 2.25em;
+	}
+
+	form {
+		flex: 1;
+		-webkit-flex: 1;
+		padding: 0 1em 1.25em;
+	}
+}
