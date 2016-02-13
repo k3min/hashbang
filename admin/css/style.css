@@ -85,7 +85,7 @@ input.delete {
 	-webkit-transition: opacity 0.1s ease-in-out;
 }
 
-a, label, select, input[type=checkbox], button, input.delete { cursor: pointer; }
+a, label, select, input[type=checkbox], button, input.delete, input[type=file] { cursor: pointer; }
 a, label, input, button, textarea, select, img { display: block; }
 dd, label, input.code, a.collection { font-size: 14px; }
 input.h1 { font-size: 22px; }
@@ -184,14 +184,20 @@ input[type=checkbox] { background: url(../res/done-empty.svg) no-repeat 50%; }
 input[type=checkbox]:checked { background-image: url(../res/done.svg); }
 input[type=checkbox]:hover { background-image: url(../res/done-outline.svg); }
 
-input.view {
+input.button {
 	width: 1.5em;
 	position: absolute;
 	right: 0; top: 0;
 	font-size: 14px;
-	background-image: url(../res/eye-empty.svg);
+	text-indent: 100%;
+	overflow: hidden;
+	background: no-repeat 50%;
 }
 
+input.upload { background-image: url(../res/upload-outline.svg); }
+input.upload:hover { background-image: url(../res/upload.svg); }
+
+input.view { background-image: url(../res/eye-empty.svg); }
 input.view:checked { background-image: url(../res/eye.svg); }
 input.view:hover { background-image: url(../res/eye-outline.svg); }
 
@@ -219,25 +225,6 @@ div.images ul {
 	height: 15em;
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
-}
-
-div.images:before,
-div.images:after {
-	content: "";
-	width: 100%; height: 0.5em;
-	position: absolute;
-	left: 0;
-}
-
-div.images:before {
-	z-index: 1;
-	top: 1.16666em;
-	background: linear-gradient(to bottom, rgba(255,255,255, 1), rgba(255,255,255, 0));
-}
-
-div.images:after {
-	bottom: 0;
-	background: linear-gradient(to top, rgba(255,255,255, 1), rgba(255,255,255, 0));
 }
 
 div.images li:hover { background: #bdc3c7; }
@@ -278,7 +265,7 @@ hb-collection { display: block; }
 		position: fixed;
 		z-index: 5;
 		left: 0;
-		bottom: 0;
+		top: 0;
 		width: 1.5em;
 		font-size: 1.5em;
 		background-size: 1.334em;
@@ -312,12 +299,12 @@ hb-collection { display: block; }
 		transition: transform 0.2s ease-in-out;
 		-webkit-transition: -webkit-transform 0.2s ease-in-out;
 		border-right: 1px solid #bdc3c7;
-		padding-bottom: 2.25em;
+		padding-top: 2.25em;
 	}
 
 	form {
 		flex: 1;
 		-webkit-flex: 1;
-		padding: 0 1em 1.25em;
+		padding: 1.25em 1em 0;
 	}
 }

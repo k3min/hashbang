@@ -90,15 +90,16 @@
 			</div>
 			<div class="input">
 				<label for="description">Description</label>
-				<input data-type="block" data-id="{{ block.id }}" name="description" value="{{ block.description }}" maxlength="256" id="description">
+				<input data-type="block" data-id="{{ block.id }}" name="description" id="description" value="{{ block.description }}" maxlength="256">
 			</div>
 			<div class="input">
 				<label for="content">Content</label>
-				<input class="view" type="checkbox" checked>
+				<input class="button view" type="checkbox" checked>
 				<textarea data-type="block" data-id="{{ block.id }}" name="content" id="content" rows="10">{{ block.content }}</textarea>
 			</div>
 			<div class="input images">
-				<label>Images</label>
+				<label for="image">Images</label>
+				<input data-type="image" type="file" name="image" id="image" accept="image/jpeg,image/png,image/svg+xml" class="button upload">
 				<ul>
 					{% HA.metadata.images.forEach(function (image) { %}
 					<li>

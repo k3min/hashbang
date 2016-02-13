@@ -19,9 +19,6 @@
 		// REST API endpoint.
 		endpoint: "api/",
 
-		// Valid upload MIME types.
-		valid: /image\/(jpeg|png|svg\+xml)/,
-
 		// Call this to fire up Hashbang Admin.
 		main: function () {
 
@@ -46,6 +43,8 @@
 			if (content !== null) {
 				content.addEventListener("keydown", HA.textarea, false);
 			}
+
+			window.toggle.checked = false;
 		},
 
 		// Textarea input handler.
@@ -184,6 +183,9 @@
 		// Event handlers related to uploading.
 		upload: {
 
+			// Valid upload MIME types.
+			valid: /image\/(jpeg|png|svg\+xml)/,
+
 			// Create event listeners.
 			init: function () {
 				window.addEventListener("dragenter", HA.upload.enter, false);
@@ -232,16 +234,20 @@
 
 			// Upload image.
 			drop: function (event) {
-				var files = event.dataTransfer.files;
+				HA.upload.parse(event.dataTransfer.files);
+				HA.upload.end(event);
+			},
 
-				if (files.length > 0 && HA.valid.test(files[0].type)) {
-					var reader = new FileReader();
-
-					reader.addEventListener("load", HA.put, false);
-					reader.readAsDataURL(files[0]);
+			// Parse files.
+			parse: function (files) {
+				if (files.length == 0 || !HA.upload.valid.test(files[0].type)) {
+					return;
 				}
 
-				HA.upload.end(event);
+				var reader = new FileReader();
+
+				reader.addEventListener("load", HA.put, false);
+				reader.readAsDataURL(files[0]);
 			}
 		},
 
@@ -342,6 +348,10 @@
 
 					break;
 				}
+
+				case HA.TYPE.IMAGE:
+					HA.upload.parse(target.files);
+					break;
 			}
 
 			HA.request.send({
@@ -392,7 +402,7 @@
 				success: HA.sync,
 				error: HA.error,
 				data: {
-					type: result.match(HA.valid)[0],
+					type: result.match(HA.upload.valid)[0],
 					value: result.split(",")[1]
 				}
 			});
