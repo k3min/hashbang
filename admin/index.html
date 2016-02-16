@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="before">
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -9,7 +9,7 @@
 		<script src="js/hashbang-admin.min.js"></script>
 	</head>
 	<body>
-		<input id="toggle" type="checkbox">
+		<input id="toggle" type="checkbox" class="menu icon">
 		<nav id="overview"></nav>
 		<form id="root"></form>
 		<footer id="upload"></footer>
@@ -19,18 +19,20 @@
 		<template id="nav" is="hb-template">
 			<dl>
 				{% this.forEach(function (collection) { %}
-				<dt data-id="{{ collection.id }}">
-					<a href="{{ collection.url }}">{{ collection.title }}</a>
-					<a onclick="HA.create(HA.TYPE.BLOCK, {{ collection.id }});" class="create block" title="Add new block to {{ collection.title }}">Add new block to {{ collection.title }}</a>
+				<dt data-id="{{ collection.id }}" class="row">
+					<a href="{{ collection.url }}" class="extend">{{ collection.title }}</a>
+					<button type="button" onclick="HA.create(HA.DATA.BLOCK, {{ collection.id }});" class="create icon" title="Add new block to {{ collection.title }}">Add new block to {{ collection.title }}</button>
 				</dt>
 				{% collection.blocks.forEach(function (block) { %}
-				<dd data-id="{{ block.id }}" draggable><a href="{{ block.url }}"  class="draggable">{{ block.title }}</a></dd>
+				<dd data-id="{{ block.id }}" class="small" draggable>
+					<a href="{{ block.url }}" class="draggable before">{{ block.title }}</a>
+				</dd>
 				{% }); %}
 				{% }); %}
 			</dl>
-			<ul>
-				<li><a onclick="HA.create(HA.TYPE.COLLECTION);" class="collection">Create new collection</a></li>
-				<li><a onclick="HA.logout();" class="collection">Logout</a></li>
+			<ul class="small">
+				<li><a onclick="HA.create(HA.DATA.COLLECTION);">Create new collection</a></li>
+				<li><a onclick="HA.logout();">Logout</a></li>
 			</ul>
 		</template>
 		<template id="datalist" is="hb-template">
@@ -45,107 +47,115 @@
 				<p>{{ this.description }}</p>
 				{% } %}
 				<div class="row">
-					{% if (this.data) { %}
+					{% var data = this.data; %}
+					{% if (data) { %}
 					{% this.buttons.forEach(function (button) { %}
 					{% if (button.action) { %}
-					<button onclick="HA.dialog.close(\'{{ this.data }}\');">{{ button.title }}</button>
+					<button type="button" onclick="HA.dialog.close(\'{{ data }}\');" class="{{ button.action }}">{{ button.title }}</button>
 					{% } else { %}
-					<button onclick="HA.dialog.close();" autofocus>{{ button.title }}</button>
+					<button type="button" onclick="HA.dialog.close();">{{ button.title }}</button>
 					{% } %}
-					{% }.bind(this)); %}
+					{% }); %}
 					{% } else { %}
-					<button onclick="HA.dialog.close();" autofocus>OK</button>
+					<button type="button" onclick="HA.dialog.close();" autofocus>OK</button>
 					{% } %}
 				</div>
 			</div>
 		</template>
 		<template id="collection" is="hb-template">
 			<div class="input after">
-				<label for="title">Title</label>
-				<input data-type="collection" data-id="{{ this.id }}" name="title" value="{{ this.title }}" maxlength="64" id="title" class="h1">
+				<label for="title" class="small">Title</label>
+				<input data-type="collection" data-id="{{ this.id }}" name="title" value="{{ this.title }}" maxlength="64" id="title" class="title">
 			</div>
 			<div class="input after">
-				<label for="handle">Handle</label>
-				<input data-type="collection" data-id="{{ this.id }}" name="handle" value="{{ this.handle }}" maxlength="32" pattern="[a-z0-9-]+" placeholder="please-use-lowercase-letters-and-0123456789" id="handle" class="code" required>
+				<label for="handle" class="small">Handle</label>
+				<input data-type="collection" data-id="{{ this.id }}" name="handle" value="{{ this.handle }}" maxlength="32" pattern="[a-z0-9-]+" placeholder="please-use-lowercase-letters-and-0123456789" id="handle" class="small" required>
 			</div>
 			<div class="input">
-				<label for="description">Description</label>
+				<label for="description" class="small">Description</label>
 				<input data-type="collection" data-id="{{ this.id }}" name="description" value="{{ this.description }}" maxlength="256" id="description">
 			</div>
 			<div class="input after">
-				<label for="type">Type</label>
-				<input data-type="collection" data-id="{{ this.id }}" name="type" value="{{ this.type }}" maxlength="16" pattern="[a-z0-9-]+" id="type" class="code" required>
+				<label for="type" class="small">Type</label>
+				<input data-type="collection" data-id="{{ this.id }}" name="type" value="{{ this.type }}" maxlength="16" pattern="[a-z0-9-]+" id="type" class="small" required>
 			</div>
-			<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.COLLECTION, {{ this.id }}, -1);" class="delete">
+			<button type="button" onclick="HA.delete(HA.DATA.COLLECTION, {{ this.id }}, -1);" class="delete">Delete</button>
 		</template>
 		<template id="block" is="hb-template">
 			{% this.blocks.forEach(function (block) { %}
 			<div class="input after">
-				<label for="title">Title</label>
-				<input data-type="block" data-id="{{ block.id }}" name="title" value="{{ block.title }}" maxlength="64" id="title" class="h1">
+				<label for="title" class="small">Title</label>
+				<input data-type="block" data-id="{{ block.id }}" name="title" value="{{ block.title }}" maxlength="64" id="title" class="title">
 			</div>
 			<div class="input after">
-				<label for="handle">Handle</label>
-				<input data-type="block" data-id="{{ block.id }}" name="handle" value="{{ block.handle }}" maxlength="32" pattern="[a-z0-9-]+" placeholder="please-use-underscore-letters-and-0123456789" id="handle" class="code" required>
+				<label for="handle" class="small">Handle</label>
+				<input data-type="block" data-id="{{ block.id }}" name="handle" value="{{ block.handle }}" maxlength="32" pattern="[a-z0-9-]+" placeholder="please-use-underscore-letters-and-0123456789" id="handle" class="small" required>
 			</div>
 			<div class="input">
-				<label for="description">Description</label>
+				<label for="description" class="small">Description</label>
 				<input data-type="block" data-id="{{ block.id }}" name="description" id="description" value="{{ block.description }}" maxlength="256">
 			</div>
 			<div class="input">
-				<label for="content">Content</label>
-				<input class="button view" type="checkbox" checked>
+				<label for="content" class="small">Content</label>
 				<textarea data-type="block" data-id="{{ block.id }}" name="content" id="content" rows="10">{{ block.content }}</textarea>
 			</div>
-			<div class="input images">
-				<label for="image">Images</label>
-				<input data-type="image" type="file" name="image" id="image" accept="image/jpeg,image/png,image/svg+xml" class="button upload">
+			<div class="input" id="images">
+				<div class="row small">
+					<label for="image" class="extend">Images</label>
+					<input data-type="image" type="file" name="image" id="image" accept="image/jpeg,image/png,image/svg+xml" class="upload icon" title="Upload image">
+				</div>
 				<ul>
 					{% HA.metadata.images.forEach(function (image) { %}
 					<li>
 						<img src="{{ image }}">
-						<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.IMAGE, \'{{ image }}\', -1);" class="delete">
+						<button type="button" onclick="HA.delete(HA.DATA.IMAGE, \'{{ image }}\', -1);" class="delete icon small" title="Delete image">Delete</button>
 					</li>
 					{% }); %}
 				</ul>
 			</div>
 			<div class="input">
-				<label for="time">Time</label>
+				<label for="time" class="small">Time</label>
 				<input data-type="block" data-id="{{ block.id }}" name="time" type="datetime-local" value="{{ block.time.format('Y-m-d\TH:i:s') }}" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2})?" id="time">
 			</div>
 			<div class="input">
-				<label>Tags <a onclick="HA.create(HA.TYPE.TAG);" class="create" title="Create new tag">Create new tag</a></label>
+				<div class="row small">
+					<label for="tag" class="extend">Tags</label>
+					<button type="button" onclick="HA.create(HA.DATA.TAG);" class="create icon" id="tag" title="Create new tag">Create new tag</button>
+				</div>
 				{% HA.metadata.tags.forEach(function (tag) { %}
-				<div class="row">
-					<input data-type="tag" data-id="{{ tag.id }}" name="handle" value="{{ tag.handle }}" maxlength="32" pattern="[a-z0-9-]+" class="code">
-					<input data-type="tag" data-id="{{ tag.id }}" name="title" value="{{ tag.title }}" maxlength="128" list="tags" class="code">
+				<div class="row small">
+					<input data-type="tag" data-id="{{ tag.id }}" name="handle" value="{{ tag.handle }}" maxlength="32" pattern="[a-z0-9-]+" class="extend">
+					<input data-type="tag" data-id="{{ tag.id }}" name="title" value="{{ tag.title }}" maxlength="128" list="tags" class="extend">
 					{% if (block.tags.has(tag)) { %}
-					<input data-type="blockTag" data-id="{{ tag.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="code" checked>
+					<input data-type="blockTag" data-id="{{ tag.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="check icon" checked>
 					{% } else { %}
-					<input data-type="blockTag" data-id="{{ tag.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="code">
+					<input data-type="blockTag" data-id="{{ tag.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="check icon">
 					{% } %}
 				</div>
 				{% }); %}
 			</div>
 			<div class="input">
-				<label>Attributes <a onclick="HA.create(HA.TYPE.ATTRIBUTE);" class="create" title="Create new attribute">Create new attribute</a></label>
+				<div class="row small">
+					<label for="attribute" class="extend">Attributes</label>
+					<button type="button" onclick="HA.create(HA.DATA.ATTRIBUTE);" class="create icon" id="attribute" title="Create new attribute">Create new attribute</button>
+				</div>
 				{% HA.metadata.attributes.forEach(function (attribute) { %}
-				<div class="row">
-					<input data-type="attribute" data-id="{{ attribute.id }}" name="handle" value="{{ attribute.handle }}" maxlength="32" pattern="[a-z0-9-]+" class="code">
-					<input data-type="attribute" data-id="{{ attribute.id }}" name="title" value="{{ attribute.title }}" maxlength="256" list="attributes" class="code">
+				<div class="row small">
+					<input data-type="attribute" data-id="{{ attribute.id }}" name="handle" value="{{ attribute.handle }}" maxlength="32" pattern="[a-z0-9-]+" class="extend">
+					<input data-type="attribute" data-id="{{ attribute.id }}" name="title" value="{{ attribute.title }}" maxlength="256" list="attributes" class="extend">
 					{% if (block.attributes.has(attribute)) { %}
-					<input data-type="blockAttribute" data-id="{{ attribute.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="code" checked>
+					<input data-type="blockAttribute" data-id="{{ attribute.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="check icon" checked>
 					{% } else { %}
-					<input data-type="blockAttribute" data-id="{{ attribute.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="code">
+					<input data-type="blockAttribute" data-id="{{ attribute.id }}" name="blockId" value="{{ block.id }}" type="checkbox" class="check icon">
 					{% } %}
 				</div>
 				{% }); %}
 			</div>
 			<div class="input after">
-				<label for="type">Type</label>
-				<input data-type="block" data-id="{{ block.id }}" name="type" value="{{ block.type }}" maxlength="16" pattern="[a-z0-9-]+" id="type" class="code" required>
+				<label for="type" class="small">Type</label>
+				<input data-type="block" data-id="{{ block.id }}" name="type" value="{{ block.type }}" maxlength="16" pattern="[a-z0-9-]+" id="type" class="small" required>
 			</div>
-			<input type="button" value="Delete" onclick="HA.delete(HA.TYPE.BLOCK, {{ block.id }}, -1);" class="delete">
+			<button type="button" onclick="HA.delete(HA.DATA.BLOCK, {{ block.id }}, -1);" class="delete">Delete</button>
 			{% }); %}
 		</template>
 		<script>

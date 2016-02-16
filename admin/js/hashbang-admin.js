@@ -14,7 +14,7 @@
 	var HA = window.HA = {
 
 		// Current version.
-		version: "0.0.6",
+		version: "0.0.7",
 
 		// REST API endpoint.
 		endpoint: "api/",
@@ -135,8 +135,10 @@
 			},
 
 			// Called when a `block` touches a `collection`.
-			enter: function () {
+			enter: function (event) {
 				if (HA.block.target !== null) {
+					event.dataTransfer.dropEffect = "move";
+
 					this.classList.add("target");
 				}
 			},
@@ -152,7 +154,6 @@
 			drag: function (event) {
 				if (HA.block.target !== null) {
 					event.preventDefault();
-					event.dataTransfer.dropEffect = "move";
 				}
 			},
 
@@ -183,7 +184,7 @@
 		// Event handlers related to uploading.
 		upload: {
 
-			// Valid upload MIME types.
+			// Valid MIME types.
 			valid: /image\/(jpeg|png|svg\+xml)/,
 
 			// Create event listeners.
@@ -201,7 +202,10 @@
 			enter: function (event) {
 				var target = event.target;
 
-				if (target === window.upload) {
+				if (target !== window.upload) {
+					event.dataTransfer.dropEffect = "none";
+				} else {
+					event.dataTransfer.dropEffect = "copy";
 					target.classList.add("target");
 				}
 
@@ -225,8 +229,6 @@
 			// Drag event.
 			drag: function (event) {
 				HA.upload.enter(event);
-
-				event.dataTransfer.dropEffect = "copy";
 
 				event.preventDefault();
 				event.stopPropagation();
@@ -256,15 +258,15 @@
 			var data = { type: type };
 
 			switch (type) {
-				case HA.TYPE.COLLECTION:
-				case HA.TYPE.TAG:
-				case HA.TYPE.ATTRIBUTE: {
+				case HA.DATA.COLLECTION:
+				case HA.DATA.TAG:
+				case HA.DATA.ATTRIBUTE: {
 					data.key = "handle";
 					data.value = "new-{}".format(type);
 					break;
 				}
 
-				case HA.TYPE.BLOCK: {
+				case HA.DATA.BLOCK: {
 					data.key = "collectionId";
 					data.value = parent;
 					break;
@@ -305,6 +307,7 @@
 
 				HB.root.addEventListener("update", HA.update, false);
 				HB.root.addEventListener("change", HA.save, false);
+				HB.root.addEventListener("submit", HA.prevent, false);
 			}
 
 			if (data.target !== null) {
@@ -315,6 +318,12 @@
 
 				location.hash = data.target;
 			}
+		},
+
+		// Prevent default.
+		prevent: function (event) {
+			event.preventDefault();
+			event.stopPropagation();
 		},
 
 		// Save changed data.
@@ -331,8 +340,8 @@
 			}
 
 			switch (type) {
-				case HA.TYPE.TAG:
-				case HA.TYPE.ATTRIBUTE: {
+				case HA.DATA.TAG:
+				case HA.DATA.ATTRIBUTE: {
 					if (key === "handle" && value === "") {
 						return HA.delete(type, id, -1);
 					}
@@ -340,8 +349,8 @@
 					break;
 				}
 
-				case HA.TYPE.BLOCK_TAG:
-				case HA.TYPE.BLOCK_ATTRIBUTE: {
+				case HA.DATA.BLOCK_TAG:
+				case HA.DATA.BLOCK_ATTRIBUTE: {
 					if (!target.checked) {
 						return HA.delete(type, id, value)
 					}
@@ -349,7 +358,7 @@
 					break;
 				}
 
-				case HA.TYPE.IMAGE:
+				case HA.DATA.IMAGE:
 					HA.upload.parse(target.files);
 					break;
 			}
@@ -373,7 +382,7 @@
 				return HA.dialog.render(HA.message.delete, { type: type, id: id });
 			}
 
-			if (type === HA.TYPE.IMAGE) {
+			if (type === HA.DATA.IMAGE) {
 				type += "/" + {
 					jpg: "jpeg",
 					png: "png",
@@ -424,8 +433,8 @@
 			location.reload(true);
 		},
 
-		// Action types.
-		TYPE: {
+		// Data types.
+		DATA: {
 			COLLECTION: "collection",
 			BLOCK: "block",
 			TAG: "tag",
@@ -449,8 +458,8 @@
 				title: "Are you sure you want to delete this :type?",
 				description: "This action cannot be undone!",
 				buttons: [
-					{ title: "Cancel", action: false },
-					{ title: "OK", action: true }
+					{ title: "Cancel" },
+					{ title: "OK", action: "delete" }
 				]
 			},
 
@@ -458,8 +467,8 @@
 				title: "Something went wrong!",
 				description: "Please try again.",
 				buttons: [
-					{ title: "Reload", action: true },
-					{ title: "OK", action: false }
+					{ title: "Reload", action: "reload" },
+					{ title: "OK" }
 				]
 			},
 
@@ -494,20 +503,18 @@
 			render: { value: function (message, data) {
 				message = Object.create(message);
 
-				if (message.buttons !== undefined) {
-					var messages = HA.message,
-						keys = Object.keys(messages);
+				var buttons = message.buttons;
 
+				if (buttons !== undefined) {
 					if (data === undefined) {
 						data = {};
 					}
 
-					// Future self: this automagically sets the `action`.
-					for (var i in keys) {
-						var key = keys[i];
+					for (var i in buttons) {
+						var action = buttons[i].action;
 
-						if (messages[key].title === message.title) {
-							data.action = key;
+						if (action !== undefined) {
+							data.action = action;
 							break;
 						}
 					}
@@ -541,7 +548,7 @@
 						break;
 					}
 
-					case "error": {
+					case "reload": {
 						location.reload(true);
 						break;
 					}
