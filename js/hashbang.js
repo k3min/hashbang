@@ -1,4 +1,4 @@
-// Hashbang 2.0.7
+// Hashbang 2.0.8
 // Copyright (c) 2016 Kevin Pancake
 // Hashbang may be freely distributed under the MIT license.
 
@@ -20,15 +20,16 @@
 
 	// Test to check if Trident (IE layout engine).
 	var isTrident = function (n) {
-		var app = navigator.appVersion;
-		return /Trident/.test(app) && app.match(/Trident\/([0-9])/)[1] <= n;
+		var x = navigator.appVersion;
+
+		return (/Trident/.test(x) && ((x.match(/Trident\/(\d)/)[1] | 0) <= n));
 	};
 
 	// Top-level namespace.
 	var HB = window.HB = {
 
 		// Current version.
-		version: "2.0.7",
+		version: "2.0.8",
 
 		// REST API endpoint.
 		endpoint: "api/:handle",
@@ -70,7 +71,7 @@
 
 			if (c === undefined || c.blocks === undefined || HB.noCache) {
 				c = HB.collections[handle] = new Collection();
-				c.addEventListener("update", HB.update);
+				c.addEventListener("update", HB.update, false);
 
 				HB.request.get({
 					handle: handle,
@@ -146,21 +147,62 @@
 	// klass
 	// -----
 
+	// A descriptor contains one of these.
+	var descriptors = [
+		"configurable",
+		"enumerable",
+		"value",
+		"writable",
+		"get",
+		"set"
+	];
+
+	// Does `descriptors` intersects `keys`?
+	var intersects = function (keys) {
+		return Object.keys(keys).some(function (i) {
+			return (descriptors.indexOf(i) !== -1);
+		});
+	};
+
+	// `Object.defineProperty` shorthand.
+	define(Object.prototype, "define", {
+		value: function (name, value, writable) {
+			var descriptor;
+
+			if (typeof value === "object" && intersects(value)) {
+				descriptor = value;
+			} else {
+				descriptor = {
+					value: value,
+					writable: writable || false
+				};
+			}
+
+			return define(this, name, descriptor);
+		}
+	});
+
 	// Create a new class. Add `$static` to a method name to make it *static*.
 	// `$virtual` makes it writable. `$private` makes it non-enumerable.
 	// You can even define getters/setters.
 	var klass = window.klass = function (methods) {
 		var base = methods.constructor,
+			type = methods.prototype,
 			self = (this && this.prototype) || false;
 
 		// If extending...
-		if (self) {
-			base.prototype = clone(self, { parent: { value: self } });
+		if (type !== undefined || self !== false) {
+			base.prototype = type || clone(self, { parent: { value: self } });
 		}
 
 		for (var i in methods) {
-			var method = methods[i],
-				property = i.split("$")[0],
+			var method = methods[i];
+
+			if (method === type) {
+				continue;
+			}
+
+			var property = i.split("$")[0],
 				object = /\$static/.test(i) ? base : base.prototype,
 				descriptor = { enumerable: !/\$private|^constructor/.test(i) };
 
@@ -170,19 +212,18 @@
 				descriptor.set = method.set;
 			} else {
 				descriptor.value = method;
-				descriptor.writable = (/\$virtual/.test(i) || typeof method !== "function");
+				descriptor.writable = (/\$virtual/.test(i) ||
+									   typeof method !== "function");
 			}
 
-			define(object, property, descriptor);
+			object.define(property, descriptor);
 		}
 
 		return base;
 	};
 
 	// Extend an existing class. To access base *class* use `this.parent`.
-	define(Object.prototype, "extend", {
-		value: klass
-	});
+	Object.prototype.define("extend", klass);
 
 	// document.registerElement
 	// ------------------------
@@ -190,65 +231,97 @@
 	// This is just a polyfill.
 	if (document.registerElement === undefined) {
 
+		// Some flags to keep track of callbacks.
+		var REGISTER = {
+			NONE: 0,
+			CUSTOM: 1,
+			EXTENDS: 2
+		};
+
 		// Here are custom elemens stored for convenience.
 		var customElements = {};
 
 		// Function to make a custom element custom.
-		var register = function (element, p) {
-			if (isTrident(6)) {
-				Object.getOwnPropertyNames(p).forEach(function (n) {
-					define(element, n, Object.getOwnPropertyDescriptor(p, n));
-				});
-
-				return;
+		var register = function (e, props) {
+			if (e.registerFlags === undefined) {
+				e.define("registerFlags", REGISTER.NONE, true);
 			}
 
-			element.__proto__ = p;
+			var mask = (props.extends !== undefined) ?
+				REGISTER.EXTENDS : REGISTER.CUSTOM;
+
+			if (e.registerFlags & mask) {
+				return false;
+			}
+
+			var p = props.prototype;
+
+			if (isTrident(7)) {
+				Object.getOwnPropertyNames(p).forEach(function (name) {
+					e.define(name, Object.getOwnPropertyDescriptor(p, name));
+				});
+			} else {
+				e.__proto__ = p;
+			}
+
+			e.registerFlags |= mask;
+
+			return true;
 		};
 
-		// This is (almost) the same as the real deal.
-		document.registerElement = function (element, props) {
+		// (Almost) the same as the real deal.
+		document.define("registerElement", function (element, props) {
 			customElements[element] = props;
 
-			var HTMLCustomElement = function HTMLCustomElement() {
-				var custom = document.createElement(element);
+			return klass({
 
-				register(custom, props.prototype);
+				// Create. Register. Return.
+				constructor: function HTMLCustomElement() {
+					var custom = document.createElement(element);
 
-				return custom;
-			};
+					register(custom, props);
 
-			HTMLCustomElement.prototype = props.prototype;
+					return custom;
+				},
 
-			define(HTMLCustomElement.prototype, "constructor", {
-				value: HTMLCustomElement
+				// Give functionality.
+				prototype: props.prototype
 			});
+		});
 
-			return HTMLCustomElement;
-		};
-
-		// Make existing custom elements custom.
-		document.addEventListener("DOMContentLoaded", function () {
+		var attach = function () {
 			for (var i in customElements) {
-				var e, x = customElements[i]["extends"];
+				var el, ex = customElements[i].extends;
 
-				if (x !== undefined) {
-					e = document.querySelectorAll("{}[is={}]".format(x, i));
+				if (ex !== undefined) {
+					el = document.querySelectorAll("{}[is={}]".format(ex, i));
 				} else {
-					e = document.getElementsByTagName(i);
+					el = document.getElementsByTagName(i);
 				}
 
-				for (var j = 0; j < e.length; j++) {
-					register(e[j], customElements[i].prototype);
+				for (var j = 0; j < el.length; j++) {
+					var e = el[j];
 
-					if (typeof e[j].attachedCallback === "function") {
-						e[j].attachedCallback.call(e[j]);
+					if (register(e, customElements[i]) &&
+						typeof e.attachedCallback === "function") {
+						e.attachedCallback.call(e);
 					}
 				}
 			}
-		});
+		}
 
-		// TODO: `MutationObserver` here.
+		try {
+			// Make custom elements custom.
+			var observer = new MutationObserver(attach);
+
+			// Observe attaches.
+			observer.observe(document, {
+				childList: true,
+				subtree: true
+			});
+		} catch (e) {
+			document.addEventListener("DOMContentLoaded", attach, false);
+		}
 	}
 
 	// HB.Template
@@ -256,11 +329,13 @@
 
 	// `HTMLTemplateElement` polyfill.
 	if (window.HTMLTemplateElement === undefined) {
-		window.HTMLTemplateElement = HTMLElement.extend({
+		window.define("HTMLTemplateElement", HTMLElement.extend({
+
+			// (Illegal) constructor.
 			constructor: function HTMLTemplateElement() {
-				console.error("Illegal constructor");
+				throw new TypeError("Illegal constructor");
 			}
-		});
+		}));
 	}
 
 	// Make the `HB.Template` *class* a custom element for ease and awesomeness.
@@ -277,14 +352,31 @@
 				text = text.split("%}").join("a.push('");
 				text = "var a=[];a.push('" + text + "');return a.join('');";
 
-				this.range = document.createRange();
-				this.source = new Function(text);
+				this.define("range", document.createRange());
+				this.define("source", new Function(text));
 			}},
 
 			// This returns a HTML string.
 			render: { value: function (d) {
+				var result, source = this.source.call(d);
+
 				this.range.selectNode(document.body);
-				return this.range.createContextualFragment(this.source.call(d));
+
+				try {
+					result = this.range.createContextualFragment(source);
+				} catch (e) {
+					var child, temp = document.createElement("div");
+
+					temp.innerHTML = source;
+
+					result = document.createDocumentFragment();
+
+					while (child = temp.firstChild) {
+						result.appendChild(child);
+					}
+				}
+
+				return result;
 			}}
 		}),
 
@@ -449,7 +541,7 @@
 							window.default;
 		},
 
-		// Returns the value of a property. Like `attributes.example`.
+		// Returns the value of a property. Like `reduce("attributes.example")`.
 		reduce: function (to) {
 			var find = to.split("."),
 				result = this[find[0]];
@@ -485,10 +577,10 @@
 				route = route.replace(opt, "(?:$1)?");
 			}
 
-			var regExp = new RegExp(route.replace(/:[a-z]+/g, "([a-z0-9-]+)"), "i");
+			var re = new RegExp(route.replace(/:[a-z]+/g, "([a-z0-9-]+)"), "i");
 
 			this[id] = callback;
-			this[id].regExp = regExp;
+			this[id].regExp = re;
 		},
 
 		// This gets called when `location.hash` changes,
@@ -530,7 +622,9 @@
 		constructor: function Request(endpoint) {
 			this.endpoint = endpoint;
 
-			this.xhr = new XMLHttpRequest();
+			this.define("xhr", new XMLHttpRequest());
+			this.define("accept", "", true);
+			this.define("response", "", true);
 
 			this.xhr.addEventListener("load", this.load.bind(this));
 			this.xhr.addEventListener("error", this.fallback.bind(this));
@@ -543,10 +637,10 @@
 		// Calls `prop.success` if all good, else `prop.error`.
 		send: function (prop) {
 			var method = prop.method,
-
-				accept = prop.accept || "application/json",
-				response = prop.response || "json",
 				data = prop.data || null;
+
+			this.accept = prop.accept || "application/json";
+			this.response = prop.response || "json";
 
 			html.classList.add("loading");
 
@@ -554,8 +648,8 @@
 			this.error = prop.error;
 
 			this.xhr.open(method, this.endpoint.format(prop));
-			this.xhr.responseType = response;
-			this.xhr.setRequestHeader("Accept", accept);
+			this.xhr.responseType = this.response;
+			this.xhr.setRequestHeader("Accept", this.accept);
 
 			if (method !== "GET" && data !== null) {
 				var type = prop.type || "application/json";
@@ -582,6 +676,10 @@
 
 			try {
 				var data = this.xhr.response;
+
+				if (this.response === "json" && typeof data !== "object") {
+					data = JSON.parse(data);
+				}
 
 				if (this.xhr.status === 200) {
 					if (typeof this.success === "function") {
@@ -623,13 +721,17 @@
 
 	// `HTMLDialogElement` polyfill.
 	if (window.HTMLDialogElement === undefined) {
-		window.HTMLDialogElement = HTMLElement.extend({
+		window.define("HTMLDialogElement", HTMLElement.extend({
+
+			// The return value.
 			returnValue: "",
 
+			// (Illegal) constructor.
 			constructor: function HTMLDialogElement() {
-				console.error("Illegal constructor");
+				throw new TypeError("Illegal constructor");
 			},
 
+			// Open attribute.
 			open: {
 				get: function () { return this.hasAttribute("open"); },
 				set: function (value) {
@@ -641,10 +743,12 @@
 				}
 			},
 
+			// `open` shorthand.
 			show: function () {
 				this.open = true;
 			},
 
+			// Close the dialog.
 			close: function (returnValue) {
 				if (returnValue !== undefined) {
 					this.returnValue = returnValue;
@@ -655,8 +759,9 @@
 				this.open = false;
 				this.returnValue = "";
 			}
-		});
+		}));
 
+		// Register dialogs as element.
 		document.registerElement("dialog", {
 			prototype: clone(HTMLDialogElement.prototype)
 		});
@@ -666,16 +771,16 @@
 	// -------
 
 	// Kills children, then appends `child`.
-	Node.prototype.replaceChildren = function (child) {
+	Node.prototype.define("replaceChildren", function (child) {
 		while (this.firstChild) {
 			this.removeChild(this.firstChild);
 		}
 
 		this.appendChild(child);
-	};
+	});
 
 	// Formats a string (`:param` or `{n}` and/or `{}`).
-	String.prototype.format = function (data) {
+	String.prototype.define("format", function (data) {
 		var i = 0;
 
 		if (typeof data !== "object") {
@@ -686,10 +791,10 @@
 		return this.replace(/:([a-z]+)|\{([0-9])?\}/g, function ($0, $1, $2) {
 			return data[$1 || $2 || i++];
 		});
-	};
+	});
 
 	// It's kinda like `date` in PHP.
-	Date.prototype.format = function (spec) {
+	Date.prototype.define("format", function (spec) {
 		var ords = Date.ordinals,
 			days = Date.days,
 			months = Date.months,
@@ -731,7 +836,7 @@
 		return spec.replace(/\\?([a-z])/gi, function ($0, $1) {
 			return options[$0] !== undefined ? options[$0] : $1;
 		});
-	};
+	});
 
 	// Text strings.
 	Date.ordinals = ["th", "st", "nd", "rd"];
@@ -761,18 +866,17 @@
 		"December"
 	];
 
-	// `dataset` polyfill.
+	// (Minimal) `dataset` polyfill.
 	if (html.dataset === undefined) {
-		define(HTMLElement.prototype, "dataset", {
+		HTMLElement.prototype.define("dataset", {
 			get: function () {
-				var dataset = {},
-					attributes = this.attributes;
+				var dataset = {};
 
-				for (var i = 0; i < attributes.length; i++) {
-					var name = attributes[i].name.split("-");
+				for (var i = 0, a = this.attributes; i < a.length; i++) {
+					var name = a[i].name.split("-");
 
 					if (name[1] !== undefined && name[0] === "data") {
-						dataset[name[1]] = attributes[i].value;
+						dataset[name[1]] = a[i].value;
 					}
 				}
 
@@ -781,9 +885,57 @@
 		});
 	}
 
+	// (Minimal) `classList` polyfill.
+	if (html.classList === undefined) {
+		var DOMTokenList = Array.extend({
+
+			// Constructor.
+			constructor: function DOMTokenList(element) {
+				this.push.apply(this, element.className.split(" "));
+				this.define("element", element);
+			},
+
+			update$private: function () {
+				this.element.className = this.toString();
+			},
+
+			// Add class to list.
+			add: function (add) {
+				if (this.indexOf(add) !== -1) {
+					return;
+				}
+
+				this.push(add);
+				this.update();
+			},
+
+			// Remove class from list.
+			remove: function (remove) {
+				var index = this.indexOf(remove);
+
+				if (index === -1) {
+					return;
+				}
+
+				this.splice(index, 1);
+				this.update();
+			},
+
+			toString: function () {
+				return this.join(" ");
+			}
+		});
+
+		HTMLElement.prototype.define("classList", {
+			get: function () {
+				return new DOMTokenList(this);
+			}
+		});
+	}
+
 	// `CustomEvent` polyfill.
 	if (isTrident(7)) {
-		window.CustomEvent = Event.extend({
+		window.define("CustomEvent", Event.extend({
 			constructor: function CustomEvent(type, props) {
 				var event = document.createEvent("CustomEvent");
 
@@ -791,6 +943,6 @@
 
 				return event;
 			}
-		});
+		}));
 	}
 })(this);

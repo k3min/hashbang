@@ -10,11 +10,11 @@ some HTML and a database to store your content.
 
 1. Create a database
 2. Create database tables using the included **hashbang.sql** file
-2. Edit [line #2, #3 and #4](https://github.com/k3min/hashbang/blob/master/api.php#L2) of **api.php**
-3. (Optional) Edit [line #3](https://github.com/k3min/hashbang/blob/master/.htaccess#L3) of **.htaccess**
-4. Upload **index.html**, **js/hashbang.min.js**, **api.php** and **.htaccess** to your webserver
-5. ?
-6. PROFIT
+3. [Edit line #2, #3 and #4](https://github.com/k3min/hashbang/blob/master/api.php#L2-L4) of **api.php**
+4. [Edit line #3](https://github.com/k3min/hashbang/blob/master/.htaccess#L3) of **.htaccess** (Optional)
+5. Upload **index.html**, **js/hashbang.min.js**, **api.php** and **.htaccess** to your webserver
+6. ?
+7. PROFIT
 
 ## Quick explanation
 
@@ -108,12 +108,12 @@ change `HB.endpoint` to something like *data/:handle.json*.
 - Chrome 8+
 - Safari 5.1+
 - Firefox 8+
-- Opera 12+
-- Internet Explorer 10+
+- Opera 11+
+- Internet Explorer 9+
 
 ## Todo
 
 - Documentation
-- Use of `history` API
+- Use of `history` API (?)
 - Paging
 - ...

@@ -26,7 +26,8 @@
 
 				'image/jpeg' => '.jpg',
 				'image/png' => '.png',
-				'image/svg+xml' => '.svg'
+				'image/svg+xml' => '.svg',
+				'image/gif' => '.gif'
 			];
 
 			if (!array_key_exists($json->type, $types)) {
@@ -82,6 +83,7 @@
 						case 'image/jpeg':
 						case 'image/png':
 						case 'image/svg+xml':
+						case 'image/gif':
 							unlink($json->id);
 							break;
 
@@ -105,6 +107,29 @@
 					$data = base64_decode($json->value);
 
 					file_put_contents($name, $data);
+
+					switch ($json->type) {
+						case 'image/jpeg': {
+							list($w, $h) = getimagesize($name);
+
+							$r = 1600 / min($w, $h);
+
+							if ($r >= 1) {
+								break;
+							}
+
+							$a = imagecreatefromjpeg($name);
+							$b = imagecreatetruecolor($w * $r, $h * $r);
+
+							imagecopyresized($b, $a, 0, 0, 0, 0, $w * $r, $h * $r, $w, $h);
+
+							unlink($name);
+
+							imagejpeg($b, $name, 75);
+
+							break;
+						}
+					}
 
 					$refresh = true;
 
@@ -155,7 +180,7 @@
 		$response += [
 			'tags' => $tags->fetchAll(PDO::FETCH_OBJ),
 			'attributes' => $attributes->fetchAll(PDO::FETCH_OBJ),
-			'images' => glob('../res/uploads/*.{jpg,png,svg}', GLOB_BRACE)
+			'images' => glob('../res/uploads/*.{jpg,png,svg,gif}', GLOB_BRACE)
 		];
 	} catch (PDOException $e) {
 		$response = [

@@ -52,15 +52,17 @@
 
 			$response += (array)$collection;
 		} else {
-			$response = [
-				'status' => 404,
-				'message' => 'Not Found'
-			];
+			throw new Exception('Not Found', 404);
 		}
 	} catch (PDOException $e) {
 		$response = [
 			'status' => 500,
 			'message' => 'Internal Server Error'
+		];
+	} catch (Exception $e) {
+		$response = [
+			'status' => $e->getCode(),
+			'message' => $e->getMessage()
 		];
 	}
 

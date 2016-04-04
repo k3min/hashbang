@@ -27,19 +27,19 @@ p {
 
 input,
 button,
-textarea,
 ul,
 dialog {
 	padding: 0;
 }
 
-a,
+#overview a,
 input,
 button,
-textarea,
 img,
 hb-collection,
-dialog {
+dialog,
+ha-toolbar,
+ha-editor {
 	display: block;
 }
 
@@ -56,8 +56,7 @@ dialog,
 }
 
 input,
-button,
-textarea {
+button {
 	-webkit-appearance: none;
 	color: inherit;
 	border-radius: 0;
@@ -68,13 +67,13 @@ textarea {
 	font-weight: inherit;
 	height: 1.5em;
 	width: 100%;
-	outline: none;
 	line-height: 1;
 }
 
-textarea,
-#images ul {
-	height: 15em;
+input,
+button,
+#content {
+	outline: none;
 }
 
 body,
@@ -87,14 +86,17 @@ dialog,
 
 dialog h1,
 #overview dt.target,
-.title {
+.title,
+b {
 	font-weight: 400;
 }
 
 .input:not(:hover) label,
 html.move #overview dd,
 #upload:not(.target),
-.delete:not(.icon):not(:hover):not(:focus) {
+.delete:not(.icon):not(:hover):not(:focus),
+#editor:not(:hover),
+#editor button:not(:hover) {
 	opacity: 0.5;
 }
 
@@ -106,7 +108,8 @@ button,
 #upload,
 .icon,
 #images li,
-a {
+a,
+#editor {
 	transition: 0.2s ease-in-out;
 }
 
@@ -143,12 +146,20 @@ html.before.loading:before { background-image: url(../res/loading.svg); }
 html.before.error:before { background-image: url(../res/error.svg); }
 
 a {
-	text-decoration: none;
 	color: inherit;
+}
+
+#overview a {
+	text-decoration: none;
 }
 
 a.active {
 	color: #2980B9;
+}
+
+img {
+	width: 100%;
+	height: auto;
 }
 
 #upload {
@@ -190,7 +201,13 @@ dialog h1 {
 }
 
 dialog div.row {
-	margin: 1.5em -1em -1em;
+	margin: 1em -1em -1em;
+}
+
+dialog input {
+	margin-top: 0.5em;
+	height: 1em;
+	padding: 0.25em;
 }
 
 dialog button {
@@ -226,7 +243,8 @@ html.move #overview dd {
 	width: 480px;
 }
 
-hb-collection > * {
+hb-collection > *,
+#content > * {
 	margin: 1em 0;
 }
 
@@ -238,16 +256,11 @@ label {
 	font-style: italic;
 }
 
-textarea {
-	font-family: "M+ 1mn", monospace;
-	line-height: 1.5;
-	-webkit-overflow-scrolling: touch;
-}
-
 input:invalid {
 	color: #E74C3C;
 }
 
+dialog input,
 button:not(.icon) {
 	box-shadow: 0 0 0 1px #BDC3C7;
 }
@@ -256,6 +269,7 @@ button:not(.icon):active {
 	background: #ECF0F1;
 }
 
+dialog input:focus,
 button:not(.icon):focus {
 	box-shadow: 0 0 0 2px #BDC3C7;
 	animation: focus 0.2s ease-in-out forwards;
@@ -263,8 +277,55 @@ button:not(.icon):focus {
 
 #toggle,
 template,
-dialog:not([open]) {
+dialog:not([open]),
+ha-toolbar:not([open]) {
 	display: none;
+}
+
+#images ul,
+#content {
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+#content ul {
+	margin-left: 1.5em;
+}
+
+#content li {
+	position: relative;
+}
+
+#content li:before {
+	content: "-";
+	width: 1.5em;
+	text-align: center;
+	position: absolute;
+	left: -1.5em;
+}
+
+#editor,
+#images .delete {
+	position: absolute;
+}
+
+#editor {
+	transform: translateX(-50%);
+	margin-top: -1.5em;
+	background: #2C3E50;
+	color: #fff;
+}
+
+#editor .icon.text {
+	font-family: serif;
+}
+
+#editor button {
+	transition: 0.1s ease-in-out;
+}
+
+#editor button:active {
+	background-color: #2980B9;
 }
 
 #images {
@@ -274,8 +335,7 @@ dialog:not([open]) {
 #images ul {
 	flex-wrap: wrap;
 	align-items: flex-start;
-	overflow: auto;
-	-webkit-overflow-scrolling: touch;
+	height: 15em;
 }
 
 #images li {
@@ -289,13 +349,7 @@ dialog:not([open]) {
 	background: #ECF0F1;
 }
 
-#images img {
-	width: 100%;
-	height: auto;
-}
-
 #images .delete {
-	position: absolute;
 	top: 0; right: 0;
 }
 
@@ -305,6 +359,10 @@ dialog:not([open]) {
 
 #images .delete:hover {
 	background-image: url(../res/error.svg) !important;
+}
+
+#content {
+	height: 20em;
 }
 
 .title {
@@ -355,10 +413,17 @@ dialog:not([open]) {
 .icon {
 	width: 1.5em; height: 1.5em;
 	background: 50% no-repeat;
+	border: none;
+}
+
+.icon.text {
+	text-align: center;
+}
+
+.icon:not(.text) {
 	overflow: hidden;
 	text-indent: 100%;
 	white-space: nowrap;
-	border: none;
 }
 
 .icon.create { background-image: url(../res/add.svg); }
@@ -370,6 +435,11 @@ dialog:not([open]) {
 
 .icon.upload { background-image: url(../res/upload-outline.svg); }
 .icon.upload:hover { background-image: url(../res/upload.svg); }
+
+.icon.bold { font-weight: bold; }
+.icon.italic { font-style: italic; }
+.icon.underline { text-decoration: underline; }
+.icon.link { background-image: url(../res/link.svg); }
 
 @media screen and (max-width: 640px) {
 	body,

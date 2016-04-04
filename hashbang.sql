@@ -52,11 +52,10 @@ CREATE TABLE collections (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DELIMITER $$
-CREATE TRIGGER collectionHandle
-  BEFORE UPDATE ON collections
-    FOR EACH ROW IF NEW.handle = TITLE2HANDLE(OLD.title) THEN
-      SET NEW.handle = TITLE2HANDLE(NEW.title);
-    END IF;
+CREATE TRIGGER collectionHandle BEFORE UPDATE ON collections
+  FOR EACH ROW IF NEW.handle = TITLE2HANDLE(OLD.title) THEN
+    SET NEW.handle = TITLE2HANDLE(NEW.title);
+  END IF;
 $$
 DELIMITER ;
 
@@ -67,7 +66,7 @@ CREATE TABLE blocks (
   description varchar(256) NOT NULL,
   content text NOT NULL,
   type varchar(16) NOT NULL DEFAULT 'default',
-  time datetime NOT NULL,
+  time datetime DEFAULT NULL,
   collectionId tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (id),
   UNIQUE (handle),
@@ -75,11 +74,16 @@ CREATE TABLE blocks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DELIMITER $$
-CREATE TRIGGER blockHandle
-  BEFORE UPDATE ON blocks
-    FOR EACH ROW IF NEW.handle = TITLE2HANDLE(OLD.title) THEN
+CREATE TRIGGER blockHandleTime BEFORE UPDATE ON blocks
+  FOR EACH ROW BEGIN
+    IF NEW.handle = TITLE2HANDLE(OLD.title) THEN
       SET NEW.handle = TITLE2HANDLE(NEW.title);
     END IF;
+
+    IF NEW.time IS NULL THEN
+      SET NEW.time = NOW();
+    END IF;
+  END;
 $$
 DELIMITER ;
 

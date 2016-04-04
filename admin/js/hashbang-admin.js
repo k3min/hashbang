@@ -14,15 +14,13 @@
 	var HA = window.HA = {
 
 		// Current version.
-		version: "0.0.7",
+		version: "0.0.8",
 
 		// REST API endpoint.
 		endpoint: "api/",
 
 		// Call this to fire up Hashbang Admin.
 		main: function () {
-
-			HA.dialog = window.dialog;
 
 			// Handles HTTP requests.
 			HA.request = new HB.Request(HA.endpoint);
@@ -34,60 +32,28 @@
 			});
 
 			HA.upload.init();
+
+			// Observe changes.
+			HA.observer = new MutationObserver(HA.mutation);
+
+			// Confirm unsaved changes.
+			window.addEventListener("beforeunload", HA.confirm, false);
+		},
+
+		mutation: function () {
+			HA.changes = true;
+		},
+
+		// Confirm unsaved changes.
+		confirm: function () {
+			if (HA.changes) {
+				return "Changes you made may not be saved!";
+			}
 		},
 
 		// Hashbang update handler.
 		update: function () {
-			var content = document.querySelector("textarea");
-
-			if (content !== null) {
-				content.addEventListener("keydown", HA.textarea, false);
-			}
-
 			window.toggle.checked = false;
-		},
-
-		// Textarea input handler.
-		textarea: function (event) {
-			var cancel = false;
-
-			switch (event.keyCode) {
-
-				// ⌘-S / CTRL-S save.
-				case HA.KEY.S: {
-					if (!(event.metaKey || event.ctrlKey)) {
-						break;
-					}
-
-					var change = new CustomEvent("change", {
-						detail: this
-					});
-
-					HB.root.dispatchEvent(change);
-
-					cancel = true;
-
-					break;
-				}
-
-				// Handle tab.
-				case HA.KEY.TAB: {
-					var a = this.selectionStart,
-						b = this.selectionEnd,
-						t = this.value;
-
-					this.value = t.slice(0, a) + "\t" + t.slice(b);
-					this.selectionStart = this.selectionEnd = a + 1;
-
-					cancel = true;
-
-					break;
-				}
-			}
-
-			if (cancel) {
-				event.preventDefault();
-			}
 		},
 
 		// Event handlers related to `block`.
@@ -98,8 +64,8 @@
 
 			// Create event listeners.
 			init: function (parent) {
-				var collections = parent.querySelectorAll("dt"),
-					blocks = parent.querySelectorAll("dd");
+				var collections = parent.getElementsByTagName("dt"),
+					blocks = parent.getElementsByTagName("dd");
 
 				for (var i = 0; i < collections.length; i++) {
 					var collection = collections[i];
@@ -185,7 +151,7 @@
 		upload: {
 
 			// Valid MIME types.
-			valid: /image\/(jpeg|png|svg\+xml)/,
+			valid: /image\/(jpeg|png|svg\+xml|gif)/,
 
 			// Create event listeners.
 			init: function () {
@@ -318,6 +284,8 @@
 
 				location.hash = data.target;
 			}
+
+			HA.changes = false;
 		},
 
 		// Prevent default.
@@ -332,10 +300,11 @@
 				data = target.dataset,
 				type = data.type,
 				id = +data.id,
-				key = target.name,
-				value = target.value;
+				key = target.getAttribute("name"),
+				value = target.value || target.innerHTML,
+				validity = target.validity;
 
-			if (key === "" || !target.validity.valid) {
+			if (key === "" || (validity !== undefined && !validity.valid)) {
 				return;
 			}
 
@@ -352,7 +321,7 @@
 				case HA.DATA.BLOCK_TAG:
 				case HA.DATA.BLOCK_ATTRIBUTE: {
 					if (!target.checked) {
-						return HA.delete(type, id, value)
+						return HA.delete(type, id, value);
 					}
 
 					break;
@@ -379,14 +348,15 @@
 		// Delete.
 		delete: function (type, id, value) {
 			if (value === -1) {
-				return HA.dialog.render(HA.message.delete, { type: type, id: id });
+				return window.dialog.render(HA.message.delete, { type: type, id: id });
 			}
 
 			if (type === HA.DATA.IMAGE) {
 				type += "/" + {
 					jpg: "jpeg",
 					png: "png",
-					svg: "svg+xml"
+					svg: "svg+xml",
+					gif: "gif"
 				}[id.split(".").pop()];
 			}
 
@@ -420,7 +390,7 @@
 		// Error handling...
 		error: function (data) {
 			html.classList.add("error");
-			HA.dialog.render(HA.message[data.status] || HA.message.error);
+			window.dialog.render(HA.message[data.status] || HA.message.error);
 		},
 
 		// Logout.
@@ -448,7 +418,8 @@
 		KEY: {
 			TAB: 9,
 			ESC: 27,
-			S: 83
+			S: 83,
+			ENTER: 13
 		},
 
 		// Messages.
@@ -469,6 +440,15 @@
 				buttons: [
 					{ title: "Reload", action: "reload" },
 					{ title: "OK" }
+				]
+			},
+
+			createLink: {
+				title: "Create link",
+				placeholder: "http://",
+				buttons: [
+					{ title: "Cancel" },
+					{ title: "OK", action: "createLink" }
 				]
 			},
 
@@ -510,17 +490,8 @@
 						data = {};
 					}
 
-					for (var i in buttons) {
-						var action = buttons[i].action;
-
-						if (action !== undefined) {
-							data.action = action;
-							break;
-						}
-					}
-
 					message.title = message.title.format(data);
-					message.data = JSON.stringify(data).replace(/"/g, "\\'");
+					message.data = data;
 				}
 
 				this.replaceChildren(window.message.render(message));
@@ -530,19 +501,15 @@
 
 			// `close` event handler.
 			callback: { value: function () {
-				var data = this.returnValue.replace(/\'/g, "\"");
+				var action = this.returnValue;
 
-				if (data === "") {
+				if (!action) {
 					return;
 				}
 
-				data = JSON.parse(data);
+				var data = this.getElementsByTagName("input").serialize();
 
-				if (data.action === undefined) {
-					return;
-				}
-
-				switch (data.action) {
+				switch (action) {
 					case "delete": {
 						HA.delete(data.type, data.id);
 						break;
@@ -550,6 +517,22 @@
 
 					case "reload": {
 						location.reload(true);
+						break;
+					}
+
+					case "createLink": {
+						var selection = window.getSelection(),
+							value = data.value;
+
+						selection.removeAllRanges();
+						selection.addRange(window.toolbar.range);
+
+						if (!value) {
+							document.execCommand("unlink", false, null);
+						} else {
+							document.execCommand("createLink", false, value);
+						}
+
 						break;
 					}
 				}
@@ -576,16 +559,16 @@
 					// Keep focus in dialog.
 					case HA.KEY.TAB: {
 						var target = event.target,
-							shift = event.shiftKey,
-							buttons = this.querySelectorAll("button"),
-							first = buttons[0],
-							last = buttons[buttons.length - 1],
-							body = (target === document.body);
+							shiftKey = event.shiftKey,
+							inputs = this.querySelectorAll("button, input:not([type=hidden])"),
+							first = inputs[0],
+							last = inputs[inputs.length - 1],
+							isBody = (target === document.body);
 
-						if ((target === last || body) && !shift) {
+						if ((target === last || isBody) && !shiftKey) {
 							first.focus();
 							cancel = true;
-						} else if ((target === first || body) && shift) {
+						} else if ((target === first || isBody) && shiftKey) {
 							last.focus();
 							cancel = true;
 						}
@@ -604,19 +587,175 @@
 		extends: "dialog"
 	});
 
+	// HA.Toolbar
+	// ----------
+
+	// All things toolbar.
+	document.registerElement("ha-toolbar", {
+		prototype: Object.create(HTMLElement.prototype, {
+
+			// Create event listeners.
+			attachedCallback: { value: function () {
+				this.addEventListener("mousedown", this.action, false);
+				document.addEventListener("selectionchange", this.show.bind(this), false);
+				this.define("action", this.querySelectorAll("[name]").serialize());
+			}},
+
+			// Do actions.
+			action: { value: function (event) {
+				event.preventDefault();
+
+				var action = event.target.name;
+
+				if (action === undefined) {
+					return;
+				}
+
+				switch (action) {
+					case "createLink": {
+						var href, range = this.range;
+
+						if (range !== undefined) {
+							href = range.commonAncestorContainer.parentElement.href;
+						}
+
+						window.dialog.render(HA.message.createLink, { value: href });
+
+						break;
+					}
+
+					case "bold":
+					case "italic":
+					case "underline": {
+						document.execCommand(action, false, null);
+						break;
+					}
+				}
+			}},
+
+			// Positioner.
+			show: { value: function () {
+				var selection = window.getSelection(),
+					anchor = selection.anchorNode,
+					content = window.content;
+
+				if (selection.rangeCount === 0 || content === null) {
+					return this.close();
+				}
+
+				while (anchor !== null && anchor !== content) {
+					anchor = anchor.parentElement;
+				}
+
+				if (anchor === null) {
+					return this.close();
+				}
+
+				this.range = selection.getRangeAt(0);
+
+				var rect = this.range.getBoundingClientRect();
+
+				if (rect.left == 0 || rect.top == 0) {
+					return this.close();
+				}
+
+				this.style.left = "{}px".format(window.scrollX + rect.left + (rect.width * 0.5));
+				this.style.top = "{}px".format(window.scrollY + rect.top);
+
+				this.setAttribute("open", "");
+			}},
+
+			// Close.
+			close: { value: function() {
+				this.removeAttribute("open");
+			}}
+		})
+	});
+
+	// HA.Editor
+	// ---------
+
+	// All things editor.
+	document.registerElement("ha-editor", {
+		prototype: Object.create(HTMLElement.prototype, {
+
+			// Create event listeners.
+			attachedCallback: { value: function () {
+				HA.observer.observe(this, {
+					childList: true,
+					characterData: true,
+					subtree: true
+				});
+
+				this.addEventListener("keydown", this.keys, false);
+				this.addEventListener("blur", this.save, false);
+			}},
+
+			// Fake ´onchange´.
+			save: { value: function () {
+				HB.root.dispatchEvent(new CustomEvent("change", {
+					detail: this
+				}));
+			}},
+
+			// Textarea input handler.
+			keys: { value: function (event) {
+				var cancel = false;
+
+				switch (event.keyCode) {
+
+					// ⌘-S / CTRL-S save.
+					case HA.KEY.S: {
+						if (event.metaKey || event.ctrlKey) {
+							this.save();
+							cancel = true;
+						}
+
+						break;
+					}
+				}
+
+				if (cancel) {
+					event.preventDefault();
+				}
+			}}
+		})
+	});
+
+	// NodeList
+	// --------
+
+	// Serializes `NodeList` to object.
+	NodeList.prototype.define("serialize", function () {
+		var object = {};
+
+		for (var i = 0; i < this.length; i++) {
+			var node = this[i],
+
+				name = node.name,
+				value = node.value;
+
+			if (name === "") {
+				continue;
+			}
+
+			object[name] = (value !== undefined) ? value : node;
+		}
+
+		return object;
+	});
+
 	// Object
 	// ------
 
 	// Does `Object` has `needle`?.
-	Object.defineProperty(Object.prototype, "has", {
-		value: function (needle) {
-			for (var handle in this) {
-				if (needle.handle === handle && needle.title === this[handle]) {
-					return true;
-				}
+	Object.prototype.define("has", function (needle) {
+		for (var handle in this) {
+			if (needle.handle === handle && needle.title === this[handle]) {
+				return true;
 			}
-
-			return false;
 		}
+
+		return false;
 	});
 })(this);
